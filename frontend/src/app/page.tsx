@@ -22,7 +22,7 @@ export default function Home() {
                 className="text-lg md:text-xl"
                 style={{ color: COLORS.text.secondary }}
               >
-                Answer a few questions and we'll generate a personalized meal plan just for you
+                Answer a few questions and we&apos;ll generate a personalized meal plan just for you
               </p>
             </div>
           </div>
