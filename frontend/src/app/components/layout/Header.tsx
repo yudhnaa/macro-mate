@@ -161,31 +161,6 @@ export default function Header() {
   );
 }
 
-function CarrotIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M2.27 21.68c.13-.34.35-.68.6-.97C4.43 19.08 6.4 16 6.4 16c0-2-1.4-4-2-6 .5-2 2-4 4-4s4 2 4 4c-1.5 1-2 3-2 6 0 0 2.55 3.5 4.05 5.18.3.33.53.7.62 1.05" />
-      <path d="M12.5 12.5c0-2-1-4-2.5-6" />
-      <path d="M12.5 12.5c0-2-1-4-2.5-6" />
-      <path d="m16.5 16.5-3-3" />
-      <path d="m13.5 13.5 3 3" />
-      <path d="M16.5 16.5c2-2 4-4 4-6s-2-4-4-4-4 2-4 4" />
-      <path d="M18 8c-2 0-4 2-4 4 0 2 2 4 4 4s4-2 4-4-2-4-4-4z" />
-    </svg>
-  );
-}
-
 function MenuIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg

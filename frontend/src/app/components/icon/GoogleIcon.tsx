@@ -9,7 +9,6 @@ interface GoogleIconProps extends React.SVGProps<SVGSVGElement> {
 }
 
 function GoogleIcon({
-  active = false,
   width = 20,
   height = 20,
   className,

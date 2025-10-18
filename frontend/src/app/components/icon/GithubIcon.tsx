@@ -9,7 +9,6 @@ interface GithubIconProps extends React.SVGProps<SVGSVGElement> {
 }
 
 function GithubIcon({
-  active = false,
   width = 20,
   height = 20,
   className,
