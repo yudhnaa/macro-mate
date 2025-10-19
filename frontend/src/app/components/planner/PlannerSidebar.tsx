@@ -7,6 +7,7 @@ import ProfileIcon from "../icon/ProfileIcon";
 import PlannerIcon from "../icon/PlannerIcon";
 import GroceriesIcon from "../icon/GroceriesIcon";
 import DiscoverIcon from "../icon/DiscoverIcon";
+import ChatbotIcon from "../icon/ChatbotIcon";
 import CustomRecipesIcon from "../icon/CustomRecipesIcon";
 import CollectionsIcon from "../icon/CollectionsIcon";
 import SavedPlansIcon from "../icon/SavedPlansIcon";
@@ -41,6 +42,11 @@ export default function PlannerSidebar() {
       name: "Discover",
       icon: <DiscoverIcon />,
       path: "/planner/discover",
+    },
+    {
+      name: "Chatbot",
+      icon: <ChatbotIcon />,
+      path: "/planner/chatbot",
     },
     {
       name: "Groceries",

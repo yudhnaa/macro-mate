@@ -1,6 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
+import ChevronLeftIcon from '../icon/ChevronLeftIcon';
+import ChevronRightIcon from '../icon/ChevronRightIcon';
+import CalendarIcon from '../icon/CalendarIcon';
+import MoreVerticalIcon from '../icon/MoreVerticalIcon';
 
 interface DateNavigatorProps {
   initialDate?: Date;
@@ -68,38 +72,14 @@ export default function DateNavigator({
           onClick={() => navigateDate('prev')}
           className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
         >
-          <svg
-            className="w-5 h-5 text-gray-700"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
+          <ChevronLeftIcon className="w-5 h-5 text-gray-700" />
         </button>
 
         <button
           onClick={openDatePicker}
           className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 rounded-lg transition-colors"
         >
-          <svg
-            className="w-5 h-5 text-gray-700"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-          </svg>
+          <CalendarIcon className="w-5 h-5 text-gray-700" />
           <span className="font-semibold text-gray-800">{formatDate(currentDate)}</span>
         </button>
 
@@ -107,36 +87,12 @@ export default function DateNavigator({
           onClick={() => navigateDate('next')}
           className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
         >
-          <svg
-            className="w-5 h-5 text-gray-700"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
+          <ChevronRightIcon className="w-5 h-5 text-gray-700" />
         </button>
       </div>
 
       <button className="text-gray-400 hover:text-gray-600 transition-colors">
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-          />
-        </svg>
+        <MoreVerticalIcon className="w-6 h-6" />
       </button>
     </div>
   );

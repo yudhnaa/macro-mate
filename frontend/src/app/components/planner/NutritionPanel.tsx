@@ -9,6 +9,9 @@ import {
   Legend,
   ChartOptions,
 } from 'chart.js';
+import ClockIcon from '../icon/ClockIcon';
+import SmileIcon from '../icon/SmileIcon';
+import AlertCircleIcon from '../icon/AlertCircleIcon';
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -125,38 +128,14 @@ export default function NutritionPanel({
             className="p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors"
             title="View History"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <ClockIcon className="w-5 h-5" />
           </button>
           {/* Settings Icon */}
           <button 
             className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
             title="Settings"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <SmileIcon className="w-5 h-5" />
           </button>
         </div>
       </div>
@@ -171,19 +150,7 @@ export default function NutritionPanel({
       {/* Warning Message */}
       {data.calories === 0 && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 flex items-center gap-2">
-          <svg
-            className="w-5 h-5 text-yellow-600 flex-shrink-0"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
+          <AlertCircleIcon className="w-5 h-5 text-yellow-600 flex-shrink-0" />
           <span className="text-sm text-yellow-800">
             Some targets are not being met
           </span>
