@@ -2,11 +2,20 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import NProgress from "nprogress";
 import { COLORS } from "@/app/utils/constants";
 import Logo from "../icon/Logo";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const router = useRouter();
+
+  const handleNavigation = (path: string) => {
+    NProgress.start();
+    router.push(path);
+    setIsMobileMenuOpen(false);
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b backdrop-blur-lg bg-white/80 shadow-sm">
@@ -51,44 +60,51 @@ export default function Header() {
               prefetch={false}
             >
               For Professionals
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-500 transition-all group-hover:w-full"></span>
             </Link>
+            <button
+              onClick={() => handleNavigation("/planner")}
+              className="text-sm font-medium transition-colors relative group"
+              style={{ color: COLORS.text.secondary }}
+            >
+              Planner
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-500 transition-all group-hover:w-full"></span>
+            </button>
           </nav>
 
           {/* Desktop Auth Buttons */}
           <div className="hidden lg:flex items-center gap-3">
-            <Link href="/login">
-              <button
-                className="px-5 py-2 text-sm font-medium rounded-lg transition-all"
-                style={{
-                  color: COLORS.text.primary,
-                  border: `1px solid ${COLORS.border.DEFAULT}`,
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = COLORS.background.gray;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }}
-              >
-                Log In
-              </button>
-            </Link>
-            <Link href="/register">
-              <button
-                className="px-5 py-2 text-white text-sm font-medium rounded-lg shadow-lg transition-all transform hover:scale-105"
-                style={{
-                  backgroundColor: COLORS.primary.DEFAULT,
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = COLORS.primary.dark;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = COLORS.primary.DEFAULT;
-                }}
-              >
-                Sign Up Free
-              </button>
-            </Link>
+            <button
+              onClick={() => handleNavigation("/login")}
+              className="px-5 py-2 text-sm font-medium rounded-lg transition-all"
+              style={{
+                color: COLORS.text.primary,
+                border: `1px solid ${COLORS.border.DEFAULT}`,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = COLORS.background.gray;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+            >
+              Log In
+            </button>
+            <button
+              onClick={() => handleNavigation("/register")}
+              className="px-5 py-2 text-white text-sm font-medium rounded-lg shadow-lg transition-all transform hover:scale-105"
+              style={{
+                backgroundColor: COLORS.primary.DEFAULT,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = COLORS.primary.dark;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = COLORS.primary.DEFAULT;
+              }}
+            >
+              Sign Up Free
+            </button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -130,28 +146,33 @@ export default function Header() {
               >
                 For Professionals
               </Link>
+              <button
+                onClick={() => handleNavigation("/planner")}
+                className="px-4 py-2 text-sm font-medium rounded-lg transition-colors text-left"
+                style={{ color: COLORS.text.secondary }}
+              >
+                Planner
+              </button>
               <div className="flex flex-col gap-2 mt-2">
-                <Link href="/login">
-                  <button
-                    className="w-full px-5 py-2.5 text-sm font-medium rounded-lg transition-all"
-                    style={{
-                      color: COLORS.text.primary,
-                      border: `1px solid ${COLORS.border.DEFAULT}`,
-                    }}
-                  >
-                    Log In
-                  </button>
-                </Link>
-                <Link href="/register">
-                  <button
-                    className="w-full px-5 py-2.5 text-white text-sm font-medium rounded-lg shadow-lg"
-                    style={{
-                      backgroundColor: COLORS.primary.DEFAULT,
-                    }}
-                  >
-                    Sign Up Free
-                  </button>
-                </Link>
+                <button
+                  onClick={() => handleNavigation("/login")}
+                  className="w-full px-5 py-2.5 text-sm font-medium rounded-lg transition-all"
+                  style={{
+                    color: COLORS.text.primary,
+                    border: `1px solid ${COLORS.border.DEFAULT}`,
+                  }}
+                >
+                  Log In
+                </button>
+                <button
+                  onClick={() => handleNavigation("/register")}
+                  className="w-full px-5 py-2.5 text-white text-sm font-medium rounded-lg shadow-lg"
+                  style={{
+                    backgroundColor: COLORS.primary.DEFAULT,
+                  }}
+                >
+                  Sign Up Free
+                </button>
               </div>
             </nav>
           </div>

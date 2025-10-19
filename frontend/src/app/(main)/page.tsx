@@ -1,5 +1,5 @@
 import { COLORS } from "@/app/utils/constants";
-import Hero from "./components/layout/Hero";
+import Hero from "../components/layout/Hero";
 
 export default function Home() {
   return (

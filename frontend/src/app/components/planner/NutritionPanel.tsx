@@ -1,0 +1,309 @@
+'use client';
+
+import React from 'react';
+import { Doughnut } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  ChartOptions,
+} from 'chart.js';
+
+// Register ChartJS components
+ChartJS.register(ArcElement, Tooltip, Legend);
+
+interface NutritionData {
+  calories: number;
+  carbs: number;
+  fat: number;
+  protein: number;
+  fiber: number;
+  sodium: number;
+  cholesterol: number;
+}
+
+interface NutritionTargets {
+  calories: number;
+  carbs: string;
+  fat: string;
+  protein: string;
+  fiber: number;
+}
+
+interface NutritionPanelProps {
+  data?: NutritionData;
+  targets?: NutritionTargets;
+}
+
+const defaultData: NutritionData = {
+  calories: 0,
+  carbs: 0,
+  fat: 0,
+  protein: 0,
+  fiber: 0,
+  sodium: 0,
+  cholesterol: 0,
+};
+
+const defaultTargets: NutritionTargets = {
+  calories: 2008,
+  carbs: '49 - 251g',
+  fat: '82 - 112g',
+  protein: '81 - 251g',
+  fiber: 25,
+};
+
+export default function NutritionPanel({
+  data = defaultData,
+  targets = defaultTargets,
+}: NutritionPanelProps) {
+  // Chart data
+  const chartData = {
+    labels: ['Carbs', 'Fat', 'Protein'],
+    datasets: [
+      {
+        data: [data.carbs || 33, data.fat || 33, data.protein || 34], // Default equal distribution if all are 0
+        backgroundColor: [
+          '#FFD700', // Yellow for Carbs
+          '#00CED1', // Cyan for Fat
+          '#9370DB', // Purple for Protein
+        ],
+        borderColor: ['#FFD700', '#00CED1', '#9370DB'],
+        borderWidth: 2,
+        hoverOffset: 8,
+      },
+    ],
+  };
+
+  // Chart options
+  const chartOptions: ChartOptions<'doughnut'> = {
+    responsive: true,
+    maintainAspectRatio: true,
+    cutout: '60%',
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        enabled: true,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        padding: 12,
+        titleFont: {
+          size: 14,
+          weight: 'bold',
+        },
+        bodyFont: {
+          size: 13,
+        },
+        callbacks: {
+          label: function (context) {
+            const label = context.label || '';
+            const value = context.parsed;
+            const total = data.carbs + data.fat + data.protein || 100;
+            const percentage = ((value / total) * 100).toFixed(1);
+            return `${label}: ${value}g (${percentage}%)`;
+          },
+        },
+      },
+    },
+    animation: {
+      animateRotate: true,
+      animateScale: true,
+      duration: 1000,
+    },
+  };
+
+  return (
+    <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-semibold text-gray-800">Nutrition</h2>
+        <div className="flex gap-2">
+          {/* Clock/History Icon */}
+          <button 
+            className="p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+            title="View History"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </button>
+          {/* Settings Icon */}
+          <button 
+            className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+            title="Settings"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Doughnut Chart */}
+      <div className="flex justify-center mb-6">
+        <div className="w-64 h-64">
+          <Doughnut data={chartData} options={chartOptions} />
+        </div>
+      </div>
+
+      {/* Warning Message */}
+      {data.calories === 0 && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 flex items-center gap-2">
+          <svg
+            className="w-5 h-5 text-yellow-600 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <span className="text-sm text-yellow-800">
+            Some targets are not being met
+          </span>
+        </div>
+      )}
+
+      {/* Nutrition Table */}
+      <div className="space-y-3">
+        {/* Table Header */}
+        <div className="flex justify-between text-sm border-b pb-2">
+          <span className="font-medium text-gray-700"></span>
+          <div className="flex gap-12">
+            <span className="font-medium text-gray-700 w-16 text-right">
+              Totals
+            </span>
+            <span className="font-medium text-gray-700 w-24 text-right">
+              Target
+            </span>
+          </div>
+        </div>
+
+        {/* Calories */}
+        <div className="flex justify-between items-center">
+          <span className="text-gray-800 font-medium">Calories</span>
+          <div className="flex gap-12 items-center">
+            <span className="text-gray-800 w-16 text-right">
+              {data.calories}
+            </span>
+            <span className="text-gray-600 w-24 text-right">
+              {targets.calories}
+            </span>
+          </div>
+        </div>
+
+        {/* Carbs */}
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+            <span className="text-gray-800">Carbs</span>
+          </div>
+          <div className="flex gap-12 items-center">
+            <span className="text-gray-800 w-16 text-right">
+              {data.carbs}g
+            </span>
+            <span className="text-gray-600 w-24 text-right">
+              {targets.carbs}
+            </span>
+          </div>
+        </div>
+
+        {/* Fat */}
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-cyan-400"></div>
+            <span className="text-gray-800">Fat</span>
+          </div>
+          <div className="flex gap-12 items-center">
+            <span className="text-gray-800 w-16 text-right">{data.fat}g</span>
+            <span className="text-gray-600 w-24 text-right">
+              {targets.fat}
+            </span>
+          </div>
+        </div>
+
+        {/* Protein */}
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-purple-400"></div>
+            <span className="text-gray-800">Protein</span>
+          </div>
+          <div className="flex gap-12 items-center">
+            <span className="text-gray-800 w-16 text-right">
+              {data.protein}g
+            </span>
+            <span className="text-gray-600 w-24 text-right">
+              {targets.protein}
+            </span>
+          </div>
+        </div>
+
+        {/* Fiber */}
+        <div className="flex justify-between items-center border-t pt-3">
+          <span className="text-gray-800">Fiber</span>
+          <div className="flex gap-12 items-center">
+            <span className="text-gray-800 w-16 text-right">
+              {data.fiber}g
+            </span>
+            <span className="text-gray-600 w-24 text-right">
+              {targets.fiber}g
+            </span>
+          </div>
+        </div>
+
+        {/* Sodium */}
+        <div className="flex justify-between items-center">
+          <span className="text-gray-800">Sodium</span>
+          <div className="flex gap-12 items-center">
+            <span className="text-gray-800 w-16 text-right">
+              {data.sodium}mg
+            </span>
+            <span className="text-gray-600 w-24 text-right">-</span>
+          </div>
+        </div>
+
+        {/* Cholesterol */}
+        <div className="flex justify-between items-center">
+          <span className="text-gray-800">Cholesterol</span>
+          <div className="flex gap-12 items-center">
+            <span className="text-gray-800 w-16 text-right">
+              {data.cholesterol}mg
+            </span>
+            <span className="text-gray-600 w-24 text-right">-</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Detailed Nutrition Button */}
+      <button className="w-full mt-6 py-3 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium">
+        Detailed Nutrition Information
+      </button>
+    </div>
+  );
+}
