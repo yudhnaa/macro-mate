@@ -1,20 +1,33 @@
-import logging
-from typing import Union
-
 from fastapi import FastAPI
-from utils.logger import setup_logger
+from fastapi.middleware.cors import CORSMiddleware
+from routers import auth
+from database.init_db import init_db
 
-logger = setup_logger(__name__, level=logging.DEBUG)
-app = FastAPI()
+app = FastAPI(title="Macro Mate API", version="1.0.0")
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Thay bằng domain cụ thể trong production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Initialize database on startup
+@app.on_event("startup")
+async def startup_event():
+    init_db()
+
+# Include routers
+app.include_router(auth.router)
 
 
 @app.get("/")
-def read_root():
-    logger.debug("Root endpoint called")
-    return {"Hello": "World"}
+async def root():
+    return {"message": "Welcome to Macro Mate API"}
 
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    logger.debug(f"Item endpoint called with item_id: {item_id} and query: {q}")
-    return {"item_id": item_id, "q": q}
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
