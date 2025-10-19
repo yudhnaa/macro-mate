@@ -3,6 +3,8 @@
 import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 import NProgress from "nprogress";
+import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
+import { logout } from "@/app/features/auth/authSlice";
 import ProfileIcon from "../icon/ProfileIcon";
 import PlannerIcon from "../icon/PlannerIcon";
 import GroceriesIcon from "../icon/GroceriesIcon";
@@ -20,12 +22,20 @@ import GeneratorSettingsIcon from "../icon/GeneratorSettingsIcon";
 export default function PlannerSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state) => state.auth);
 
   const handleNavigation = (path: string) => {
     if (pathname !== path) {
       NProgress.start();
       router.push(path);
     }
+  };
+
+  const handleLogout = () => {
+    dispatch(logout());
+    NProgress.start();
+    router.push("/");
   };
   const menuItems = [
     {
@@ -157,10 +167,12 @@ export default function PlannerSidebar() {
         {/* User Profile */}
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white font-semibold">
-            PD
+            {user?.username?.substring(0, 2).toUpperCase() || user?.email?.substring(0, 2).toUpperCase() || "U"}
           </div>
           <div className="flex-1">
-            <p className="font-semibold text-gray-800">duongxummo</p>
+            <p className="font-semibold text-gray-800">
+              {user?.username || user?.email?.split('@')[0] || "User"}
+            </p>
             <span className="inline-block px-2 py-1 text-xs bg-orange-500 text-white rounded">
               What&apos;s in Premium?
             </span>
@@ -340,7 +352,10 @@ export default function PlannerSidebar() {
           </svg>
           <span className="font-medium">Home</span>
         </button>
-        <button className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-700 hover:bg-gray-50 w-full">
+        <button 
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-red-600 hover:bg-red-50 w-full transition-colors"
+        >
           <svg
             className="w-5 h-5"
             fill="none"

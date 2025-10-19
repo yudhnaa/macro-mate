@@ -4,6 +4,8 @@ import "./globals.css";
 
 import ProgressBar from "./components/common/ProgressBar";
 import { Suspense } from "react";
+import { ReduxProvider } from "./store/ReduxProvider";
+import { AuthProvider } from "./components/auth/AuthProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,10 +33,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Suspense fallback={null}>
-          <ProgressBar />
-        </Suspense>
-        <main className="flex-1">{children}</main>
+        <ReduxProvider>
+          <AuthProvider>
+            <Suspense fallback={null}>
+              <ProgressBar />
+            </Suspense>
+            <main className="flex-1">{children}</main>
+          </AuthProvider>
+        </ReduxProvider>
       </body>
     </html>
   );
