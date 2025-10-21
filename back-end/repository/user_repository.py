@@ -1,10 +1,12 @@
 ### GIẢ LẬP CHỨC NĂNG LẤY THÔNG TIN NGƯỜI DÙNG ###
 
-from typing import Optional, Dict, Any
-from utils.redis_client import RedisCache
+from typing import Any, Dict, Optional
+
 from utils.logger import setup_logger
+from utils.redis_client import RedisCache
 
 logger = setup_logger(__name__)
+
 
 class UserRepository:
     def __init__(self, redis_client: Optional[RedisCache] = None):
@@ -27,13 +29,13 @@ class UserRepository:
             try:
                 cached = await self.redis.get(cache_key)
                 if cached:
-                    logger.info(f"✅ Cache HIT for user {user_id}")
+                    logger.info(f"Cache HIT for user {user_id}")
                     return cached
             except Exception as e:
                 logger.warning(f"Redis error: {e}")
 
         # Cache miss - fetch from source
-        logger.info(f"⚠️ Cache MISS for user {user_id} - fetching...")
+        logger.info(f"Cache MISS for user {user_id} - fetching...")
 
         # Giả lập gọi db
         user_profile = await self._fetch_from_source(user_id)
@@ -41,7 +43,7 @@ class UserRepository:
         if self.redis and user_profile:
             try:
                 await self.redis.set(cache_key, user_profile, expire=30 * 60)
-                logger.info(f"💾 Cached profile for user {user_id}")
+                logger.info(f"Cached profile for user {user_id}")
             except Exception as e:
                 logger.warning(f"Failed to cache: {e}")
 
@@ -64,10 +66,10 @@ class UserRepository:
                 "age": 30,
                 "weight": 70,
                 "height": 175,
-                "bmi" : "N/A",
-                "bodyShape" : "mập",
+                "bmi": "N/A",
+                "bodyShape": "mập",
                 "health_conditions": "tiểu đường loại 2, huyết áp cao",
-                "description" : "Giảm cân"
+                "description": "Giảm cân",
             },
             "user_456": {
                 "user_id": "user_456",
@@ -75,10 +77,10 @@ class UserRepository:
                 "age": 35,
                 "weight": 58,
                 "height": 165,
-                "bmi" : "N/A",
-                "bodyShape" : "mập",
+                "bmi": "N/A",
+                "bodyShape": "mập",
                 "health_conditions": None,
-                "description": "Tăng cơ"
+                "description": "Tăng cơ",
             },
             "user_789": {
                 "user_id": "user_789",
@@ -86,11 +88,11 @@ class UserRepository:
                 "age": 45,
                 "weight": 85,
                 "height": 180,
-                "bmi" : "N/A",
-                "bodyShape" : "mập",
+                "bmi": "N/A",
+                "bodyShape": "mập",
                 "health_conditions": None,
-                "description": "Duy trì sức khỏe"
-            }
+                "description": "Duy trì sức khỏe",
+            },
         }
 
         profile = mock_users.get(user_id)
@@ -103,11 +105,11 @@ class UserRepository:
                 "age": 30,
                 "weight": 70,
                 "height": 170,
-                "bmi" : "N/A",
-                "bodyShape" : "mập",
+                "bmi": "N/A",
+                "bodyShape": "mập",
                 "health_conditions": None,
                 "description": "Duy trì sức khỏe",
-                "_is_default": True
+                "_is_default": True,
             }
 
         return profile
@@ -121,4 +123,3 @@ class UserRepository:
                 logger.info(f"🗑️ Invalidated cache for user {user_id}")
             except Exception as e:
                 logger.warning(f"Failed to invalidate cache: {e}")
-

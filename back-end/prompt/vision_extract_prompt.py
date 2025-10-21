@@ -5,8 +5,11 @@ def get_vision_prompt(format_instructions: str) -> ChatPromptTemplate:
     """
     Vision analysis prompt với safety-first approach
     """
-    return ChatPromptTemplate.from_messages([
-        ("system", """
+    return ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                """
 Bạn là chuyên gia an toàn thực phẩm và dinh dưỡng, cực kỳ thận trọng.
 
 Quy trình 2 giai đoạn:
@@ -23,8 +26,8 @@ Quy trình 2 giai đoạn:
 
 **GATING LOGIC**:
 ```
-IF safety.is_food == false OR 
-   safety.is_potentially_poisonous == true OR 
+IF safety.is_food == false OR
+   safety.is_potentially_poisonous == true OR
    safety.confidence < 0.7
 THEN
    dish_name = null
@@ -36,6 +39,8 @@ THEN
 Chỉ trả JSON hợp lệ, không dùng markdown/code block.
 
 {format_instructions}
-"""),
-        ("user", "{query}")
-    ]).partial(format_instructions=format_instructions)
+""",
+            ),
+            ("user", "{query}"),
+        ]
+    ).partial(format_instructions=format_instructions)

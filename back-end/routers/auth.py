@@ -1,17 +1,18 @@
 from datetime import timedelta
+
+from config import settings
+from database.connection import get_db
+from database.crud import create_user, get_user_by_email
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
+from models.user import Token, User, UserCreate, UserLogin
 from sqlalchemy.orm import Session
-from models.user import UserCreate, User, Token, UserLogin
 from utils.auth import (
-    verify_password,
-    get_password_hash,
     create_access_token,
     get_current_user,
+    get_password_hash,
+    verify_password,
 )
-from database.crud import get_user_by_email, create_user
-from database.connection import get_db
-from config import settings
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -65,8 +66,7 @@ async def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
 
 @router.post("/token", response_model=Token)
 async def login_for_access_token(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db)
+    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
     """OAuth2 compatible token login (for Swagger UI)"""
     user = get_user_by_email(db, form_data.username)
@@ -87,15 +87,13 @@ async def login_for_access_token(
 
 @router.get("/me", response_model=User)
 async def get_me(
-    current_user_email: str = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user_email: str = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     """Get current user information"""
     user = get_user_by_email(db, current_user_email)
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     return user

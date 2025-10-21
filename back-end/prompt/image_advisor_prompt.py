@@ -5,8 +5,11 @@ def get_image_advisor_prompt() -> ChatPromptTemplate:
     """
     Personalized nutrition advice dựa trên vision result
     """
-    return ChatPromptTemplate.from_messages([
-        ("system", """
+    return ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                """
 Bạn là chuyên gia dinh dưỡng cá nhân hóa.
 
 **THÔNG TIN MÓN ĂN** (từ phân tích ảnh):
@@ -41,6 +44,10 @@ Bạn là chuyên gia dinh dưỡng cá nhân hóa.
 Response bằng Markdown, ~300 từ.
 
 {additional_query}
-"""),
-        MessagesPlaceholder(variable_name="messages"),  # ← Chat history + current query
-    ])
+""",
+            ),
+            MessagesPlaceholder(
+                variable_name="messages"
+            ),  # ← Chat history + current query
+        ]
+    )

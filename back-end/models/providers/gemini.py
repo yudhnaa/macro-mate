@@ -1,14 +1,16 @@
 import os
-from typing import Optional, Any, Iterator, List
+from typing import Any, Iterator, List, Optional
+
 import google.generativeai as genai
+from dotenv import load_dotenv
 from langchain_core.callbacks import CallbackManagerForLLMRun
-from langchain_core.messages import BaseMessage, AIMessage, AIMessageChunk
-from langchain_core.outputs import ChatResult, ChatGeneration, ChatGenerationChunk
+from langchain_core.messages import AIMessage, AIMessageChunk, BaseMessage
+from langchain_core.outputs import ChatGeneration, ChatGenerationChunk, ChatResult
 from models.base.base_llm import BaseReasoningModel
 from pydantic import PrivateAttr
-from dotenv import load_dotenv
 
 load_dotenv()
+
 
 class Gemini(BaseReasoningModel):
     model_name: str = None
@@ -35,11 +37,11 @@ class Gemini(BaseReasoningModel):
         return True
 
     def _generate(
-            self,
-            messages: list[BaseMessage],
-            stop: Optional[list[str]] = None,
-            run_manager: Optional[CallbackManagerForLLMRun] = None,
-            **kwargs: Any,
+        self,
+        messages: list[BaseMessage],
+        stop: Optional[list[str]] = None,
+        run_manager: Optional[CallbackManagerForLLMRun] = None,
+        **kwargs: Any,
     ) -> ChatResult:
         gemini_messages = self._prepare_messages(messages)
         chat = self._gemini_model.start_chat(
@@ -50,7 +52,7 @@ class Gemini(BaseReasoningModel):
                 gemini_messages[-1]["parts"][0],
                 generation_config=genai.types.GenerationConfig(
                     temperature=self.temperature,
-                )
+                ),
             )
 
             return ChatResult(
@@ -60,11 +62,13 @@ class Gemini(BaseReasoningModel):
             # Fallback: Queue request hoặc switch sang OpenRouter
             raise ValueError(f"Gemini error: {str(e)}")
 
-    def _stream(self,
-                messages: List[BaseMessage],
-                stop: Optional[List[str]] = None,
-                run_manager: Optional[CallbackManagerForLLMRun] = None,
-                **kwargs: Any, ) -> Iterator[ChatGenerationChunk]:
+    def _stream(
+        self,
+        messages: List[BaseMessage],
+        stop: Optional[List[str]] = None,
+        run_manager: Optional[CallbackManagerForLLMRun] = None,
+        **kwargs: Any,
+    ) -> Iterator[ChatGenerationChunk]:
         """
         Stream từ Gemini với chat history
 
@@ -85,7 +89,7 @@ class Gemini(BaseReasoningModel):
                     temperature=self.temperature,
                     max_output_tokens=self.max_tokens,
                 ),
-                stream=True  # ← Enable streaming
+                stream=True,  # ← Enable streaming
             )
 
             # Yield chunks
@@ -94,13 +98,13 @@ class Gemini(BaseReasoningModel):
 
                 # Try simple text accessor first
                 try:
-                    if hasattr(chunk, 'text') and chunk.text:
+                    if hasattr(chunk, "text") and chunk.text:
                         text_content = chunk.text
                 except (ValueError, AttributeError):
                     #  Fallback: Extract from parts (multi-part response)
-                    if hasattr(chunk, 'parts') and chunk.parts:
+                    if hasattr(chunk, "parts") and chunk.parts:
                         for part in chunk.parts:
-                            if hasattr(part, 'text') and part.text:
+                            if hasattr(part, "text") and part.text:
                                 text_content += part.text
 
                 # Yield nếu có content
@@ -151,14 +155,18 @@ class Gemini(BaseReasoningModel):
         if messages and messages[0].type == "system":
             system_content = messages[0].content
             if len(messages) > 1:
-                gemini_messages = [{
-                    "role": "user",
-                    "parts": [f"{system_content}\n\n{messages[1].content}"]
-                }] + [
-                                      {"role": "user" if m.type in ["human", "user"] else "model",
-                                       "parts": [m.content]}
-                                      for m in messages[2:]
-                                  ]
+                gemini_messages = [
+                    {
+                        "role": "user",
+                        "parts": [f"{system_content}\n\n{messages[1].content}"],
+                    }
+                ] + [
+                    {
+                        "role": "user" if m.type in ["human", "user"] else "model",
+                        "parts": [m.content],
+                    }
+                    for m in messages[2:]
+                ]
             else:
                 gemini_messages = [{"role": "user", "parts": [system_content]}]
 

@@ -1,4 +1,5 @@
 from functools import lru_cache
+
 from services.workflow_service import WorkflowService
 from utils.redis_client import RedisCache, cache_user_profile
 
@@ -7,10 +8,6 @@ from utils.redis_client import RedisCache, cache_user_profile
 def get_workflow_service() -> WorkflowService:
     """
     Dependency injection - singleton service
-
-    ⚠️ Tại sao singleton?
-    - WorkflowService build graph 1 lần (expensive)
-    - Models được cache bởi ModelFactory
 
     """
     return WorkflowService()

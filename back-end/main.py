@@ -1,15 +1,16 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
-from routers import auth, advice
-
 from contextlib import asynccontextmanager
-from database.init_db import init_db
-from models.factory import ModelFactory
-from utils.redis_client import RedisCache
+
+import uvicorn
 from config import settings
 from database.checkpointer import get_async_checkpointer, get_manager
+from database.init_db import init_db
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from models.factory import ModelFactory
+from routers import advice, auth
 from utils.logger import setup_logger
+from utils.redis_client import RedisCache
+
 logger = setup_logger(__name__)
 
 
@@ -50,47 +51,21 @@ async def lifespan(app: FastAPI):
         checkpointer = await get_async_checkpointer()
 
         if checkpointer:
-            logger.info("✅ Async checkpointer ready")
-
-            # # ✅ TEST write/read với ĐÚNG signature
-            # test_config = {"configurable": {"thread_id": "test_startup_789"}}
-
-            # ✅ Cách ĐÚNG: Dùng graph để test, không gọi trực tiếp aput()
-        #     try:
-        #         # Test bằng cách list checkpoints
-        #         logger.info("📖 Testing checkpointer by listing...")
-        #         count = 0
-        #         async for checkpoint_tuple in checkpointer.alist(test_config):
-        #             count += 1
-        #             if count >= 1:  # Chỉ check 1 cái
-        #                 break
-        #
-        #         logger.info(f"✅ Checkpointer operational (found {count} existing checkpoints)")
-        #
-        #     except Exception as e:
-        #         logger.error(f"❌ Checkpointer test FAILED: {e}")
-        #         import traceback
-        #         logger.error(traceback.format_exc())
+            logger.info("Async checkpointer ready")
         else:
-            logger.error("❌ Checkpointer is None!")
+            logger.error("Checkpointer is None!")
 
     except Exception as e:
         logger.error(f"PostgreSQL initialization error: {e}")
         import traceback
+
         logger.error(traceback.format_exc())
 
     except Exception as e:
         logger.error(f"PostgreSQL initialization error: {e}")
         import traceback
-        logger.error(traceback.format_exc())
 
-    # if settings.USE_MOCK_USER_SERVICE:
-    #     print("Using MOCK User Service (local development mode)")
-    #     from app.services.mock_user_service import MockUserService
-    #     users = MockUserService.list_mock_users()
-    #     print(f"   → Available mock users: {', '.join(users.keys())}")
-    # else:
-    #     print(f"Using REAL User Service: {settings.USER_SERVICE_URL}")
+        logger.error(traceback.format_exc())
 
     yield
 
@@ -99,15 +74,12 @@ async def lifespan(app: FastAPI):
     manager = get_manager()
     if manager:
         await manager.close()
-        logger.info("✅ Async checkpointer closed")
+        logger.info("Async checkpointer closed")
 
-    logger.info("✅ Shutdown complete")
+    logger.info("Shutdown complete")
 
-app = FastAPI(
-    title="Macro Mate API",
-    version="1.0.0",
-    lifespan=lifespan
-)
+
+app = FastAPI(title="Macro Mate API", version="1.0.0", lifespan=lifespan)
 
 # CORS middleware
 app.add_middleware(
@@ -145,5 +117,5 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=8000,
         reload=settings.DEBUG,
-        log_level=settings.LOG_LEVEL.lower()
+        log_level=settings.LOG_LEVEL.lower(),
     )

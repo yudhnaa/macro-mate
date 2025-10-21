@@ -1,9 +1,10 @@
-import redis
-import json
-from typing import Optional, Dict, Any
-from functools import wraps
 import hashlib
+import json
 import logging
+from functools import wraps
+from typing import Any, Dict, Optional
+
+import redis
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ class RedisCache:
             max_connections=50,
             socket_timeout=2,
             socket_connect_timeout=2,
-            retry_on_timeout=True
+            retry_on_timeout=True,
         )
 
     def get_profile(self, user_id: str) -> Optional[Dict[str, Any]]:
@@ -42,10 +43,7 @@ class RedisCache:
             return None
 
     def set_profile(
-            self,
-            user_id: str,
-            profile: Dict[str, Any],
-            ttl: int = 86400  # 24 hours
+        self, user_id: str, profile: Dict[str, Any], ttl: int = 86400  # 24 hours
     ) -> bool:
         """
         Cache user profile
@@ -61,11 +59,7 @@ class RedisCache:
         key = f"profile:{user_id}"
 
         try:
-            self.client.setex(
-                key,
-                ttl,
-                json.dumps(profile, ensure_ascii=False)
-            )
+            self.client.setex(key, ttl, json.dumps(profile, ensure_ascii=False))
             logger.info(f"Cached profile: {user_id} (TTL: {ttl}s)")
             return True
 
@@ -101,12 +95,7 @@ class RedisCache:
             logger.error(f"Failed to get thread: {e}")
             return None
 
-    def set_thread(
-            self,
-            thread_id: str,
-            state: Dict,
-            ttl: int = 604800  # 7 days
-    ):
+    def set_thread(self, thread_id: str, state: Dict, ttl: int = 604800):  # 7 days
         """
         Save thread state
         """

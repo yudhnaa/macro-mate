@@ -1,11 +1,15 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
+
 def get_text_advisor_prompt() -> ChatPromptTemplate:
     """
     General nutrition Q&A - không có ảnh
     """
-    return ChatPromptTemplate.from_messages([
-        ("system", """
+    return ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                """
 Bạn là chuyên gia dinh dưỡng thân thiện.
 
 **HỒ SƠ NGƯỜI DÙNG**:
@@ -24,6 +28,10 @@ Bạn là chuyên gia dinh dưỡng thân thiện.
 - Không tư vấn y khoa nghiêm trọng
 
 Response: Markdown, ~200-300 từ
-"""),
-        MessagesPlaceholder(variable_name="messages"),  # ← Chat history + current query
-    ])
+""",
+            ),
+            MessagesPlaceholder(
+                variable_name="messages"
+            ),  # ← Chat history + current query
+        ]
+    )

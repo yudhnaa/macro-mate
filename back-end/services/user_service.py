@@ -1,6 +1,8 @@
-from typing import Dict, Any
+from typing import Any, Dict
+
 from repository.user_repository import UserRepository
 from utils.redis_client import RedisCache
+
 
 class UserProfileService:
     def __init__(self, redis_client: RedisCache = None):
@@ -14,4 +16,3 @@ class UserProfileService:
     async def invalidate_cache(self, user_id: str):
         """Webhook từ User Service khi profile thay đổi"""
         await self.repository.invalidate_cache(user_id)
-

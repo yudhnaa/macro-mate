@@ -1,28 +1,30 @@
-from distlib import logger
-from pygments.lexer import words
-
-from routers.auth import login
-from utils.logger import setup_logger
-from langgraph.graph import StateGraph, END
 from typing import Literal
-from langgraph_flow.state import GraphState
+
+from distlib import logger
+from langgraph.graph import END, StateGraph
 from langgraph_flow.nodes import (
-    router_node,
-    vision_node,
     image_advisor_node,
-    text_advisor_node
+    router_node,
+    text_advisor_node,
+    vision_node,
 )
+from langgraph_flow.state import GraphState
+from pygments.lexer import words
+from routers.auth import login
 from utils.logger import setup_logger
 
 logger = setup_logger(__name__)
+
 
 def route_after_router(state: GraphState) -> Literal["vision", "text_advisor"]:
     """Conditional edge: có ảnh → vision, không → text"""
     return "vision" if state["has_image"] else "text_advisor"
 
+
 def should_continue_after_vision(state: GraphState) -> Literal["image_advisor", "end"]:
     """Conditional edge: có lỗi vision → dừng, không → advisor"""
     return "end" if state.get("error") else "image_advisor"
+
 
 def build_workflow() -> StateGraph:
     workflow = StateGraph(GraphState)
@@ -39,13 +41,13 @@ def build_workflow() -> StateGraph:
     workflow.add_conditional_edges(
         "router",
         route_after_router,
-        {"vision": "vision", "text_advisor": "text_advisor"}
+        {"vision": "vision", "text_advisor": "text_advisor"},
     )
 
     workflow.add_conditional_edges(
         "vision",
         should_continue_after_vision,
-        {"image_advisor": "image_advisor", "end": END}
+        {"image_advisor": "image_advisor", "end": END},
     )
 
     workflow.add_edge("image_advisor", END)

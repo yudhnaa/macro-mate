@@ -1,8 +1,9 @@
 import logging
 from typing import Optional
+
+from config import settings
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from psycopg_pool import AsyncConnectionPool
-from config import settings
 
 logger = logging.getLogger(__name__)
 # settings = get_settings()
@@ -10,7 +11,9 @@ logger = logging.getLogger(__name__)
 
 class AsyncPostgresCheckpointerManager:
     def __init__(self, database_url: str = None, schema: str = None):
-        self.database_url = settings.DATABASE_URL if database_url is None else database_url
+        self.database_url = (
+            settings.DATABASE_URL if database_url is None else database_url
+        )
         self.schema = schema or settings.CHECKPOINT_SCHEMA
         self._checkpointer: Optional[AsyncPostgresSaver] = None
         self._pool: Optional[AsyncConnectionPool] = None
@@ -19,12 +22,12 @@ class AsyncPostgresCheckpointerManager:
     async def initialize(self):
         """Initialize async connection pool"""
         try:
-            logger.info("🔌 Creating async connection pool...")
+            logger.info("Creating async connection pool...")
 
             connection_kwargs = {
                 "autocommit": True,
                 "prepare_threshold": 0,
-                "options": f"-c search_path={self.schema},public"
+                "options": f"-c search_path={self.schema},public",
             }
 
             # ✅ Create pool WITHOUT opening it
@@ -33,12 +36,12 @@ class AsyncPostgresCheckpointerManager:
                 min_size=2,
                 max_size=10,
                 kwargs=connection_kwargs,
-                open=False
+                open=False,
             )
 
             # ✅ Open pool explicitly
             await self._pool.open()
-            logger.info("✅ Async pool opened")
+            logger.info("Async pool opened")
 
             async with self._pool.connection() as conn:
                 await conn.execute(f"CREATE SCHEMA IF NOT EXISTS {self.schema}")
@@ -50,13 +53,14 @@ class AsyncPostgresCheckpointerManager:
 
             # ✅ Setup tables
             await self._checkpointer.setup()
-            logger.info("✅ Checkpointer tables created/verified")
+            logger.info("Checkpointer tables created/verified")
 
             return True
 
         except Exception as e:
-            logger.error(f"❌ Failed to initialize async checkpointer: {e}")
+            logger.error(f"Failed to initialize async checkpointer: {e}")
             import traceback
+
             logger.error(traceback.format_exc())
             return False
 
@@ -97,7 +101,7 @@ async def get_async_checkpointer() -> Optional[AsyncPostgresSaver]:
         success = await _manager.initialize()
 
         if not success:
-            logger.error("❌ Failed to initialize checkpointer")
+            logger.error("Failed to initialize checkpointer")
             return None
 
     return _manager.get_checkpointer()

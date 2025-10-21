@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Iterator, Any
+from typing import Any, Iterator, Optional
+
 from langchain_core.language_models import BaseChatModel
 
 

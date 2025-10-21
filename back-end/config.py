@@ -1,14 +1,16 @@
-from pydantic_settings import BaseSettings
-from pydantic import ConfigDict, Field
-from typing import Optional
 from pathlib import Path
+from typing import Optional
+
 import yaml
+from pydantic import ConfigDict, Field
+from pydantic_settings import BaseSettings
+
 
 class Settings(BaseSettings):
     SECRET_KEY: str = "your-secret-key-here-change-in-production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    
+
     # Database settings
     DATABASE_HOST: str = "localhost"
     DATABASE_PORT: int = 5432
@@ -21,74 +23,52 @@ class Settings(BaseSettings):
 
     # ===== CORS =====
     ALLOWED_ORIGINS: list[str] = Field(
-        default=["http://localhost:3000"],
-        description="Allowed CORS origins"
+        default=["http://localhost:3000"], description="Allowed CORS origins"
     )
 
     # Model Routers API key
     OPENROUTER_API_KEY: Optional[str] = Field(
-        default=None,
-        alias="OPEN_ROUTER_API_KEY",
-        description="OpenRouter API key"
+        default=None, alias="OPEN_ROUTER_API_KEY", description="OpenRouter API key"
     )
 
-    GOOGLE_API_KEY: Optional[str] = Field(
-        default=None,
-        description="Google AI API key"
-    )
+    GOOGLE_API_KEY: Optional[str] = Field(default=None, description="Google AI API key")
 
     GOOGLE_CLOUD_PROJECT: Optional[str] = Field(
-        default=None,
-        description="Google Cloud project ID"
+        default=None, description="Google Cloud project ID"
     )
 
     # ===== Model Providers =====
     VLM_PROVIDER: str = Field(
-        default="openrouter",
-        description="Vision Language Model provider"
+        default="openrouter", description="Vision Language Model provider"
     )
 
-    LLM_PROVIDER: str = Field(
-        default="gemini",
-        description="Text LLM provider"
-    )
+    LLM_PROVIDER: str = Field(default="gemini", description="Text LLM provider")
 
     # ===== Feature Flags =====
     ENABLE_STREAMING: bool = Field(
-        default=True,
-        description="Enable SSE streaming responses"
+        default=True, description="Enable SSE streaming responses"
     )
 
-    ENABLE_COST_TRACKING: bool = Field(
-        default=True,
-        description="Track API call costs"
-    )
+    ENABLE_COST_TRACKING: bool = Field(default=True, description="Track API call costs")
 
     ENABLE_FALLBACK: bool = Field(
-        default=True,
-        description="Auto fallback to alternative providers on failure"
+        default=True, description="Auto fallback to alternative providers on failure"
     )
 
     # ===== Paths =====
     MODEL_CONFIG_PATH: str = Field(
-        default="model_config.yaml",
-        description="Path to model configuration YAML"
+        default="model_config.yaml", description="Path to model configuration YAML"
     )
 
     # AI SCHEMA
     CHECKPOINT_SCHEMA: str = Field(
-        default= "ai_service",
-        description = "PostgreSQL schema for LangGraph checkpoints"
+        default="ai_service", description="PostgreSQL schema for LangGraph checkpoints"
     )
 
     # ===== Cache Settings =====
-    CACHE_TTL: int = Field(
-        default=3600,
-        description="Cache TTL in seconds (1 hour)"
-    )
+    CACHE_TTL: int = Field(default=3600, description="Cache TTL in seconds (1 hour)")
     ENABLE_MEMORY_CACHE: bool = Field(
-        default=True,
-        description="Enable L1 memory cache"
+        default=True, description="Enable L1 memory cache"
     )
 
     # ===== Pydantic Config =====
@@ -96,18 +76,17 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=True,
-        extra="ignore",  # ← KEY: Bỏ qua extra fields thay vì raise error
-        populate_by_name=True  # Allow field aliases
+        extra="ignore", 
+        populate_by_name=True,
     )
 
     # ===== Redis Configuration =====
     REDIS_URL: Optional[str] = Field(
         default=None,
-        description="Redis connection URL. Format: redis://localhost:6379/0"
+        description="Redis connection URL. Format: redis://localhost:6379/0",
     )
     REDIS_ENABLED: bool = Field(
-        default=True,
-        description="Enable/disable Redis caching"
+        default=True, description="Enable/disable Redis caching"
     )
 
     # ===== YAML Config Cache =====
@@ -129,7 +108,7 @@ class Settings(BaseSettings):
                 f"Model config file not found: {self.MODEL_CONFIG_PATH}"
             )
 
-        with open(config_path, 'r', encoding='utf-8') as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             self._yaml_config = yaml.safe_load(f)
 
     def get_vlm_config(self) -> dict:
@@ -183,7 +162,7 @@ class Settings(BaseSettings):
             "enable_streaming": self.ENABLE_STREAMING,
             "enable_cost_tracking": self.ENABLE_COST_TRACKING,
             "enable_fallback": self.ENABLE_FALLBACK,
-            **yaml_features  # Thêm các flags khác từ YAML
+            **yaml_features,
         }
 
     def get_monitoring_config(self) -> dict:
@@ -224,7 +203,6 @@ class Settings(BaseSettings):
 
         return api_key
 
-    
     @property
     def DATABASE_URL(self) -> str:
         return f"postgresql://{self.DATABASE_USER}:{self.DATABASE_PASSWORD}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"

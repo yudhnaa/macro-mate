@@ -1,6 +1,7 @@
-from sqlalchemy.orm import Session
-from database.models import UserDB
 from typing import Optional
+
+from database.models import UserDB
+from sqlalchemy.orm import Session
 
 
 def get_user_by_email(db: Session, email: str) -> Optional[UserDB]:
@@ -15,13 +16,10 @@ def get_user_by_id(db: Session, user_id: int) -> Optional[UserDB]:
 
 def create_user(db: Session, email: str, hashed_password: str) -> UserDB:
     """Create new user - username tự động lấy từ email"""
-    username = email.split('@')[0]
-    
+    username = email.split("@")[0]
+
     db_user = UserDB(
-        email=email,
-        username=username,
-        hashed_password=hashed_password,
-        is_active=True
+        email=email, username=username, hashed_password=hashed_password, is_active=True
     )
     db.add(db_user)
     db.commit()
