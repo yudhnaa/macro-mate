@@ -42,8 +42,10 @@ def vision_node(state: GraphState):
 
         # Format the prompt with query
         prompt_text = vision_prompt_template.format(
-            query="Phân tích món ăn trong ảnh này"
+            query="Phân tích các thành phần có trong món ăn ở trong ảnh này"
         )
+
+        logger.info(f"Vision prompt (first 500 chars): {prompt_text[:500]}")
 
         # Create multimodal message
         message = HumanMessage(
@@ -99,6 +101,7 @@ def vision_node(state: GraphState):
 
         logger.error(f"vision_node error: {traceback.format_exc()}")
         state["error"] = f"Lỗi phân tích ảnh: {str(e)}"
+    logger.info(f"Vision node completed with state: {state}")
     return state
 
 
