@@ -58,26 +58,26 @@ export default function PlannerSidebar() {
       icon: <ChatbotIcon />,
       path: "/planner/chatbot",
     },
-    {
-      name: "Groceries",
-      icon: <GroceriesIcon />,
-      path: "/groceries",
-    },
-    {
-      name: "Custom Recipes",
-      icon: <CustomRecipesIcon />,
-      path: "/custom-recipes",
-    },
+    // {
+    //   name: "Groceries",
+    //   icon: <GroceriesIcon />,
+    //   path: "/groceries",
+    // },
+    // {
+    //   name: "Custom Recipes",
+    //   icon: <CustomRecipesIcon />,
+    //   path: "/custom-recipes",
+    // },
     {
       name: "Collections",
       icon: <CollectionsIcon />,
-      path: "/collections",
+      path: "/planner/collections",
     },
-    {
-      name: "Saved Plans",
-      icon: <SavedPlansIcon />,
-      path: "/saved-plans",
-    },
+    // {
+    //   name: "Saved Plans",
+    //   icon: <SavedPlansIcon />,
+    //   path: "/saved-plans",
+    // },
   ];
 
   const settingsMenu = [

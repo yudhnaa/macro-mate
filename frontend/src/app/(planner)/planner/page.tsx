@@ -6,9 +6,11 @@ import MealsSection from '@/app/components/planner/MealsSection';
 import NutritionPanel from '@/app/components/planner/NutritionPanel';
 
 export default function PlannerPage() {
+  const [selectedDate, setSelectedDate] = React.useState(new Date());
+
   const handleDateChange = (date: Date) => {
+    setSelectedDate(date);
     console.log('Date changed to:', date);
-    // Handle date change logic here
   };
 
   return (
@@ -21,7 +23,7 @@ export default function PlannerPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Meals Section - Takes 2 columns */}
           <div className="lg:col-span-2">
-            <MealsSection />
+            <MealsSection selectedDate={selectedDate} />
           </div>
 
           {/* Nutrition Panel - Takes 1 column */}
