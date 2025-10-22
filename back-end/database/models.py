@@ -1,5 +1,6 @@
 from database.connection import Base
-from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 
@@ -29,3 +30,55 @@ class UserDB(Base):
     updated_at = Column(
         DateTime(timezone=True), onupdate=func.now(), server_default=func.now()
     )
+
+
+class FoodDB(Base):
+    __tablename__ = "foods"
+
+    id = Column(Integer, primary_key=True, index=True)
+    raw_id = Column(Integer, nullable=False, index=True)
+    name = Column(String(255), nullable=False, index=True)
+    
+    is_breakfast = Column(Boolean, default=False)
+    is_lunch = Column(Boolean, default=False)
+    is_dinner = Column(Boolean, default=False)
+    is_snack = Column(Boolean, default=False)
+    is_dessert = Column(Boolean, default=False)
+    
+    needs_blender = Column(Boolean, default=False)
+    needs_oven = Column(Boolean, default=False)
+    needs_stove = Column(Boolean, default=False)
+    needs_slow_cooker = Column(Boolean, default=False)
+    needs_toaster = Column(Boolean, default=False)
+    needs_food_processor = Column(Boolean, default=False)
+    needs_microwave = Column(Boolean, default=False)
+    needs_grill = Column(Boolean, default=False)
+    
+
+    complexity = Column(Integer, nullable=True)
+    cook_time = Column(String(50), nullable=True) 
+    prep_time = Column(String(50), nullable=True) 
+    wait_time = Column(String(50), nullable=True) 
+    total_time = Column(String(50), nullable=True) 
+    
+    grams = Column(Float, nullable=True)
+    grams_per_unit = Column(Float, nullable=True)
+    default_unit = Column(String(50), nullable=True)
+    unit_amount = Column(Float, nullable=True)
+    
+    image_url = Column(Text, nullable=True)
+    
+    # Relationship
+    direction = relationship("DirectionDB", back_populates="food", cascade="all, delete-orphan")
+
+
+class DirectionDB(Base):
+    __tablename__ = "direction"
+
+    id = Column(Integer, primary_key=True, index=True)
+    order = Column(Integer, nullable=False)
+    direction = Column(Text, nullable=False)
+    food_id = Column(Integer, ForeignKey("foods.id", ondelete="CASCADE"), nullable=False, index=True)
+    
+    # Relationship
+    food = relationship("FoodDB", back_populates="direction")
