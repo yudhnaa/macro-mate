@@ -7,6 +7,7 @@ from database.init_db import init_db
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from models.factory import ModelFactory
+from routers import advice, auth, analys
 from routers import advice, auth, food, profile
 from utils.logger import setup_logger
 from utils.redis_client import RedisCache
@@ -96,6 +97,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(profile.router)
 app.include_router(advice.router)
+app.include_router(analys.router)
 app.include_router(food.router)
 
 

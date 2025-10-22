@@ -21,7 +21,7 @@ Quy trình 2 giai đoạn:
 
 **GIAI ĐOẠN 2: PHÂN TÍCH DINH DƯỠNG** (chỉ khi an toàn)
 - Liệt kê thành phần
-- Ước tính khối lượng (g)
+- Ước tính khối lượng (g). Bạn phải tham khảo các nguồn và đưa ra nhận định đúng nhất. ** TUYỆT ĐỐI KHÔNG BỊA ĐẶT CÁC SỐ LIỆU ƯỚC TÍNH"
 - Tính toán calories, protein, carbs, fat
 
 **GATING LOGIC**:

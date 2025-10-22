@@ -12,6 +12,8 @@ from prompt.text_advisor_prompt import get_text_advisor_prompt
 from services.user_service import UserProfileService
 from utils.logger import setup_logger
 from utils.redis_client import RedisCache
+from schema.recognition_food import RecognitionWithSafety
+from langgraph_flow.nodes import vision_node
 
 logger = setup_logger(__name__)
 
@@ -211,7 +213,35 @@ class WorkflowService:
             }
         else:
             return {**common_input, "user_query": state.get("user_query", "")}
+    
+    async def analyze_image(self, img_url: str) -> RecognitionWithSafety:
+        try:
+            logger.info(f"Starting image analysis for {img_url}")
+            initial_state: GraphState = {
+                "messages": [],
+                "image_url": img_url,
+                "user_query": "Phân tích món ăn trong ảnh",
+                "user_profile": {},  # Không cần profile cho vision
+                "has_image": True,
+                "vision_result": None,
+                "error": None,
+            }
 
+            result_state = vision_node(initial_state)
+
+            if result_state.get("error"):
+                logger.error(f"Image analysis error: {result_state['error']}")
+                raise Exception(result_state["error"])
+            vision_result = result_state.get("vision_result")
+            
+            if not vision_result:
+                raise ValueError("Vision analys not return the result")
+
+            logger.info(f"Vision analyst succesful {vision_result.dish_name}")
+            return vision_result
+        except Exception as e:
+            logger.error("analyze image failed")
+            raise
 
 _service_instance = None
 

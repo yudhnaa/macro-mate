@@ -89,6 +89,25 @@ class Settings(BaseSettings):
         default=True, description="Enable/disable Redis caching"
     )
 
+    # ✅ ===== Cloudinary Configuration =====
+    CLOUDINARY_CLOUD_NAME: Optional[str] = Field(
+        default=None, description="Cloudinary cloud name"
+    )
+    CLOUDINARY_API_KEY: Optional[str] = Field(
+        default=None, description="Cloudinary API key"
+    )
+    CLOUDINARY_API_SECRET: Optional[str] = Field(
+        default=None, description="Cloudinary API secret"
+    )
+    CLOUDINARY_FOLDER: str = Field(
+        default="macro-mate/food-images",
+        description="Cloudinary folder for uploaded images"
+    )
+    CLOUDINARY_MAX_FILE_SIZE: int = Field(
+        default=10 * 1024 * 1024,  # 10MB
+        description="Max file size in bytes"
+    )
+
     # ===== YAML Config Cache =====
     _yaml_config: dict = {}
 
