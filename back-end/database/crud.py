@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Dict, Optional
 
 from database.models import UserDB
 from sqlalchemy.orm import Session
@@ -30,3 +30,28 @@ def create_user(db: Session, email: str, hashed_password: str) -> UserDB:
 def get_users(db: Session, skip: int = 0, limit: int = 100):
     """Get list of users"""
     return db.query(UserDB).offset(skip).limit(limit).all()
+
+
+def update_user_profile(
+    db: Session, user_id: int, profile_data: Dict
+) -> Optional[UserDB]:
+    """Update user profile"""
+    user = get_user_by_id(db, user_id)
+    if not user:
+        return None
+    
+    # Update only provided fields
+    for key, value in profile_data.items():
+        if hasattr(user, key) and value is not None:
+            setattr(user, key, value)
+    
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def create_user_profile(
+    db: Session, user_id: int, profile_data: Dict
+) -> Optional[UserDB]:
+    """Create/Update user profile - alias for update_user_profile"""
+    return update_user_profile(db, user_id, profile_data)
