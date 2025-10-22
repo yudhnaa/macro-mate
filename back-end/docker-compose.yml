@@ -41,6 +41,9 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: macro-mate-api
+    environment:
+      - DATABASE_HOST=macro-mate-postgres
+      - REDIS_URL=redis://macro-mate-redis:6379/0
     volumes:
       - .:/app
       - /app/__pycache__
