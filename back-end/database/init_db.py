@@ -1,4 +1,4 @@
-from database.connection import engine, Base
+from database.connection import Base, engine
 from database.models import UserDB
 
 

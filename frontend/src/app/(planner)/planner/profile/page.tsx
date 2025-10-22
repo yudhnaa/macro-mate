@@ -1,36 +1,107 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
+import { getMyProfile, updateMyProfile, clearProfileError } from '@/app/features/profile/profileSlice';
+import { UserProfileUpdate, ACTIVITY_LEVELS, GENDER_OPTIONS, BODY_SHAPE_OPTIONS, FITNESS_GOAL_OPTIONS } from '@/types/profile.types';
 
 export default function ProfilePage() {
+  const dispatch = useAppDispatch();
+  const { profile, isLoading, isSaving, error } = useAppSelector((state) => state.profile);
+  const { user } = useAppSelector((state) => state.auth);
+
   const [isEditing, setIsEditing] = useState(false);
-  const [profileData, setProfileData] = useState({
-    name: 'duongxummo',
-    email: 'duongxummo@example.com',
-    phone: '+84 123 456 789',
-    bio: 'Passionate about healthy eating and meal planning',
-    location: 'Vietnam',
-    birthDate: '1990-01-15',
-    gender: 'Male',
-    height: '175', // cm
-    weight: '70', // kg
-    activityLevel: 'moderate',
-    dietaryPreferences: ['Balanced', 'High Protein'],
-    allergies: ['Peanuts', 'Shellfish'],
+  const [formData, setFormData] = useState<UserProfileUpdate>({
+    full_name: '',
+    age: null,
+    gender: null,
+    weight: null,
+    height: null,
+    body_shape: null,
+    health_conditions: null,
+    fitness_goal: null,
+    dietary_restrictions: null,
+    allergies: null,
+    activity_level: null,
   });
 
-  const handleInputChange = (field: string, value: string) => {
-    setProfileData((prev) => ({
+  // Load profile on mount
+  useEffect(() => {
+    dispatch(getMyProfile());
+  }, [dispatch]);
+
+  // Update form data when profile loads
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        full_name: profile.full_name || '',
+        age: profile.age || null,
+        gender: profile.gender || null,
+        weight: profile.weight || null,
+        height: profile.height || null,
+        body_shape: profile.body_shape || null,
+        health_conditions: profile.health_conditions || '',
+        fitness_goal: profile.fitness_goal || null,
+        dietary_restrictions: profile.dietary_restrictions || '',
+        allergies: profile.allergies || '',
+        activity_level: profile.activity_level || null,
+      });
+    }
+  }, [profile]);
+
+  const handleInputChange = (field: keyof UserProfileUpdate, value: string | number | null) => {
+    setFormData((prev) => ({
       ...prev,
-      [field]: value,
+      [field]: value === '' ? null : value,
     }));
   };
 
-  const handleSave = () => {
-    // Save logic here
-    setIsEditing(false);
-    console.log('Profile saved:', profileData);
+  const handleSave = async () => {
+    try {
+      await dispatch(updateMyProfile(formData)).unwrap();
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Failed to save profile:', error);
+    }
   };
+
+  const handleCancel = () => {
+    if (profile) {
+      setFormData({
+        full_name: profile.full_name || '',
+        age: profile.age || null,
+        gender: profile.gender || null,
+        weight: profile.weight || null,
+        height: profile.height || null,
+        body_shape: profile.body_shape || null,
+        health_conditions: profile.health_conditions || '',
+        fitness_goal: profile.fitness_goal || null,
+        dietary_restrictions: profile.dietary_restrictions || '',
+        allergies: profile.allergies || '',
+        activity_level: profile.activity_level || null,
+      });
+    }
+    setIsEditing(false);
+    dispatch(clearProfileError());
+  };
+
+  const displayValue = (value: string | number | null | undefined): string => {
+    if (value === null || value === undefined || value === '') {
+      return 'Chưa cập nhật';
+    }
+    return String(value);
+  };
+
+  if (isLoading && !profile) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Đang tải profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -40,23 +111,32 @@ export default function ProfilePage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Profile Settings</h1>
             <p className="text-sm text-gray-600 mt-1">
-              Manage your account information and preferences
+              Quản lý thông tin cá nhân và sở thích của bạn
             </p>
           </div>
           <div className="flex items-center gap-3">
             {isEditing ? (
               <>
                 <button
-                  onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  onClick={handleCancel}
+                  disabled={isSaving}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
-                  Cancel
+                  Hủy
                 </button>
                 <button
                   onClick={handleSave}
-                  className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                  disabled={isSaving}
+                  className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center gap-2"
                 >
-                  Save Changes
+                  {isSaving ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Đang lưu...</span>
+                    </>
+                  ) : (
+                    'Lưu thay đổi'
+                  )}
                 </button>
               </>
             ) : (
@@ -77,12 +157,29 @@ export default function ProfilePage() {
                     d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                   />
                 </svg>
-                Edit Profile
+                Chỉnh sửa Profile
               </button>
             )}
           </div>
         </div>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="max-w-5xl mx-auto px-6 pt-6">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between">
+            <span>{error}</span>
+            <button
+              onClick={() => dispatch(clearProfileError())}
+              className="text-red-500 hover:text-red-700"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="max-w-5xl mx-auto p-6">
@@ -90,70 +187,49 @@ export default function ProfilePage() {
           {/* Left Column - Profile Card */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              {/* Avatar */}
               <div className="flex flex-col items-center">
                 <div className="relative">
                   <div className="w-32 h-32 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-4xl font-bold">
-                    PD
+                    {profile?.full_name?.[0]?.toUpperCase() || profile?.username?.[0]?.toUpperCase() || 'U'}
                   </div>
-                  {isEditing && (
-                    <button className="absolute bottom-0 right-0 w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white hover:bg-orange-600 transition-colors">
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                      </svg>
-                    </button>
-                  )}
                 </div>
                 <h2 className="mt-4 text-xl font-bold text-gray-800">
-                  {profileData.name}
+                  {profile?.full_name || profile?.username || 'User'}
                 </h2>
-                <p className="text-sm text-gray-600">{profileData.email}</p>
+                <p className="text-sm text-gray-600">{profile?.email || user?.email}</p>
                 <span className="mt-3 inline-block px-3 py-1 text-xs bg-orange-100 text-orange-600 rounded-full font-medium">
-                  Premium Member
+                  {profile?.is_active ? 'Active' : 'Inactive'}
                 </span>
               </div>
 
               {/* Quick Stats */}
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <h3 className="text-sm font-semibold text-gray-700 mb-3">
-                  Quick Stats
+                  Thống kê nhanh
                 </h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Height</span>
+                    <span className="text-sm text-gray-600">Chiều cao</span>
                     <span className="text-sm font-semibold text-gray-800">
-                      {profileData.height} cm
+                      {profile?.height ? `${profile.height} cm` : 'Chưa cập nhật'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Weight</span>
+                    <span className="text-sm text-gray-600">Cân nặng</span>
                     <span className="text-sm font-semibold text-gray-800">
-                      {profileData.weight} kg
+                      {profile?.weight ? `${profile.weight} kg` : 'Chưa cập nhật'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">BMI</span>
-                    <span className="text-sm font-semibold text-green-600">
-                      {(
-                        parseFloat(profileData.weight) /
-                        Math.pow(parseFloat(profileData.height) / 100, 2)
-                      ).toFixed(1)}
+                    <span className={`text-sm font-semibold ${profile?.bmi ? 'text-green-600' : 'text-gray-400'}`}>
+                      {profile?.bmi ? profile.bmi.toFixed(1) : 'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Tuổi</span>
+                    <span className="text-sm font-semibold text-gray-800">
+                      {profile?.age || 'Chưa cập nhật'}
                     </span>
                   </div>
                 </div>
@@ -166,123 +242,72 @@ export default function ProfilePage() {
             {/* Personal Information */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Personal Information
+                Thông tin cá nhân
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name
+                    Họ và tên
                   </label>
                   {isEditing ? (
                     <input
                       type="text"
-                      value={profileData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      value={formData.full_name || ''}
+                      onChange={(e) => handleInputChange('full_name', e.target.value)}
+                      placeholder="Nhập họ tên"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     />
                   ) : (
-                    <p className="px-3 py-2 text-gray-800">{profileData.name}</p>
+                    <p className="px-3 py-2 text-gray-800">{displayValue(profile?.full_name)}</p>
                   )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Email
                   </label>
-                  {isEditing ? (
-                    <input
-                      type="email"
-                      value={profileData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    />
-                  ) : (
-                    <p className="px-3 py-2 text-gray-800">{profileData.email}</p>
-                  )}
+                  <p className="px-3 py-2 text-gray-600 bg-gray-50 rounded-lg">
+                    {profile?.email || user?.email || 'Chưa cập nhật'}
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Phone Number
+                    Tuổi
                   </label>
                   {isEditing ? (
                     <input
-                      type="tel"
-                      value={profileData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      type="number"
+                      value={formData.age || ''}
+                      onChange={(e) => handleInputChange('age', e.target.value ? parseInt(e.target.value) : null)}
+                      placeholder="Nhập tuổi"
+                      min="0"
+                      max="150"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     />
                   ) : (
-                    <p className="px-3 py-2 text-gray-800">{profileData.phone}</p>
+                    <p className="px-3 py-2 text-gray-800">{displayValue(profile?.age)}</p>
                   )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Location
-                  </label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={profileData.location}
-                      onChange={(e) =>
-                        handleInputChange('location', e.target.value)
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    />
-                  ) : (
-                    <p className="px-3 py-2 text-gray-800">
-                      {profileData.location}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Birth Date
-                  </label>
-                  {isEditing ? (
-                    <input
-                      type="date"
-                      value={profileData.birthDate}
-                      onChange={(e) =>
-                        handleInputChange('birthDate', e.target.value)
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    />
-                  ) : (
-                    <p className="px-3 py-2 text-gray-800">
-                      {new Date(profileData.birthDate).toLocaleDateString()}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Gender
+                    Giới tính
                   </label>
                   {isEditing ? (
                     <select
-                      value={profileData.gender}
-                      onChange={(e) => handleInputChange('gender', e.target.value)}
+                      value={formData.gender || ''}
+                      onChange={(e) => handleInputChange('gender', e.target.value || null)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     >
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
+                      <option value="">Chọn giới tính</option>
+                      {GENDER_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
                     </select>
                   ) : (
-                    <p className="px-3 py-2 text-gray-800">{profileData.gender}</p>
-                  )}
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Bio
-                  </label>
-                  {isEditing ? (
-                    <textarea
-                      value={profileData.bio}
-                      onChange={(e) => handleInputChange('bio', e.target.value)}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    />
-                  ) : (
-                    <p className="px-3 py-2 text-gray-800">{profileData.bio}</p>
+                    <p className="px-3 py-2 text-gray-800">
+                      {GENDER_OPTIONS.find(o => o.value === profile?.gender)?.label || displayValue(profile?.gender)}
+                    </p>
                   )}
                 </div>
               </div>
@@ -291,256 +316,206 @@ export default function ProfilePage() {
             {/* Physical Stats */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Physical Stats
+                Thông số thể chất
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Height (cm)
+                    Chiều cao (cm)
                   </label>
                   {isEditing ? (
                     <input
                       type="number"
-                      value={profileData.height}
-                      onChange={(e) => handleInputChange('height', e.target.value)}
+                      value={formData.height || ''}
+                      onChange={(e) => handleInputChange('height', e.target.value ? parseFloat(e.target.value) : null)}
+                      placeholder="175"
+                      min="0"
+                      max="300"
+                      step="0.1"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     />
                   ) : (
                     <p className="px-3 py-2 text-gray-800">
-                      {profileData.height} cm
+                      {profile?.height ? `${profile.height} cm` : displayValue(profile?.height)}
                     </p>
                   )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Weight (kg)
+                    Cân nặng (kg)
                   </label>
                   {isEditing ? (
                     <input
                       type="number"
-                      value={profileData.weight}
-                      onChange={(e) => handleInputChange('weight', e.target.value)}
+                      value={formData.weight || ''}
+                      onChange={(e) => handleInputChange('weight', e.target.value ? parseFloat(e.target.value) : null)}
+                      placeholder="70"
+                      min="0"
+                      max="500"
+                      step="0.1"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     />
                   ) : (
                     <p className="px-3 py-2 text-gray-800">
-                      {profileData.weight} kg
+                      {profile?.weight ? `${profile.weight} kg` : displayValue(profile?.weight)}
                     </p>
                   )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Activity Level
+                    Dáng người
                   </label>
                   {isEditing ? (
                     <select
-                      value={profileData.activityLevel}
-                      onChange={(e) =>
-                        handleInputChange('activityLevel', e.target.value)
-                      }
+                      value={formData.body_shape || ''}
+                      onChange={(e) => handleInputChange('body_shape', e.target.value || null)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     >
-                      <option value="sedentary">Sedentary</option>
-                      <option value="light">Light</option>
-                      <option value="moderate">Moderate</option>
-                      <option value="active">Active</option>
-                      <option value="very-active">Very Active</option>
+                      <option value="">Chọn dáng người</option>
+                      {BODY_SHAPE_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
                     </select>
                   ) : (
-                    <p className="px-3 py-2 text-gray-800 capitalize">
-                      {profileData.activityLevel}
-                    </p>
+                    <p className="px-3 py-2 text-gray-800">{displayValue(profile?.body_shape)}</p>
                   )}
                 </div>
               </div>
+
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Mức độ hoạt động
+                </label>
+                {isEditing ? (
+                  <select
+                    value={formData.activity_level || ''}
+                    onChange={(e) => handleInputChange('activity_level', e.target.value || null)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  >
+                    <option value="">Chọn mức độ hoạt động</option>
+                    {ACTIVITY_LEVELS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <p className="px-3 py-2 text-gray-800">
+                    {ACTIVITY_LEVELS.find(o => o.value === profile?.activity_level)?.label || displayValue(profile?.activity_level)}
+                  </p>
+                )}
+              </div>
             </div>
 
-            {/* Dietary Preferences */}
+            {/* Health & Fitness */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Dietary Preferences & Allergies
+                Sức khỏe & Mục tiêu
               </h3>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Dietary Preferences
+                    Mục tiêu Fitness
                   </label>
-                  <div className="flex flex-wrap gap-2">
-                    {profileData.dietaryPreferences.map((pref, index) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm"
-                      >
-                        {pref}
-                        {isEditing && (
-                          <button className="ml-1 hover:text-green-900">
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M6 18L18 6M6 6l12 12"
-                              />
-                            </svg>
-                          </button>
-                        )}
-                      </span>
-                    ))}
-                    {isEditing && (
-                      <button className="px-3 py-1 border-2 border-dashed border-gray-300 rounded-full text-sm text-gray-600 hover:border-orange-500 hover:text-orange-500">
-                        + Add
-                      </button>
-                    )}
-                  </div>
+                  {isEditing ? (
+                    <select
+                      value={formData.fitness_goal || ''}
+                      onChange={(e) => handleInputChange('fitness_goal', e.target.value || null)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    >
+                      <option value="">Chọn mục tiêu</option>
+                      {FITNESS_GOAL_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <p className="px-3 py-2 text-gray-800">{displayValue(profile?.fitness_goal)}</p>
+                  )}
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Allergies
+                    Tình trạng sức khỏe
                   </label>
-                  <div className="flex flex-wrap gap-2">
-                    {profileData.allergies.map((allergy, index) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm"
-                      >
-                        {allergy}
-                        {isEditing && (
-                          <button className="ml-1 hover:text-red-900">
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M6 18L18 6M6 6l12 12"
-                              />
-                            </svg>
-                          </button>
-                        )}
-                      </span>
-                    ))}
-                    {isEditing && (
-                      <button className="px-3 py-1 border-2 border-dashed border-gray-300 rounded-full text-sm text-gray-600 hover:border-orange-500 hover:text-orange-500">
-                        + Add
-                      </button>
-                    )}
-                  </div>
+                  {isEditing ? (
+                    <textarea
+                      value={formData.health_conditions || ''}
+                      onChange={(e) => handleInputChange('health_conditions', e.target.value)}
+                      placeholder="Ví dụ: tiểu đường loại 2, huyết áp cao..."
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    />
+                  ) : (
+                    <p className="px-3 py-2 text-gray-800">{displayValue(profile?.health_conditions)}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Hạn chế chế độ ăn
+                  </label>
+                  {isEditing ? (
+                    <textarea
+                      value={formData.dietary_restrictions || ''}
+                      onChange={(e) => handleInputChange('dietary_restrictions', e.target.value)}
+                      placeholder="Ví dụ: chay, không gluten, không lactose..."
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    />
+                  ) : (
+                    <p className="px-3 py-2 text-gray-800">{displayValue(profile?.dietary_restrictions)}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Dị ứng thực phẩm
+                  </label>
+                  {isEditing ? (
+                    <textarea
+                      value={formData.allergies || ''}
+                      onChange={(e) => handleInputChange('allergies', e.target.value)}
+                      placeholder="Ví dụ: đậu phộng, hải sản, trứng..."
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    />
+                  ) : (
+                    <p className="px-3 py-2 text-gray-800">{displayValue(profile?.allergies)}</p>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Account Actions */}
+            {/* Account Info */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Account Actions
+                Thông tin tài khoản
               </h3>
-              <div className="space-y-3">
-                <button className="w-full px-4 py-3 text-left border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <svg
-                      className="w-5 h-5 text-gray-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
-                      />
-                    </svg>
-                    <span className="font-medium text-gray-700">
-                      Change Password
-                    </span>
-                  </div>
-                  <svg
-                    className="w-5 h-5 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </button>
-                <button className="w-full px-4 py-3 text-left border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <svg
-                      className="w-5 h-5 text-gray-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                      />
-                    </svg>
-                    <span className="font-medium text-gray-700">
-                      Privacy Settings
-                    </span>
-                  </div>
-                  <svg
-                    className="w-5 h-5 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </button>
-                <button className="w-full px-4 py-3 text-left border border-red-200 rounded-lg hover:bg-red-50 transition-colors flex items-center justify-between text-red-600">
-                  <div className="flex items-center gap-3">
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                    <span className="font-medium">Delete Account</span>
-                  </div>
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </button>
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Tên người dùng</span>
+                  <span className="font-medium text-gray-800">{profile?.username || user?.username}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Email</span>
+                  <span className="font-medium text-gray-800">{profile?.email || user?.email}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Ngày tạo</span>
+                  <span className="font-medium text-gray-800">
+                    {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('vi-VN') : 'N/A'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Cập nhật lần cuối</span>
+                  <span className="font-medium text-gray-800">
+                    {profile?.updated_at ? new Date(profile.updated_at).toLocaleDateString('vi-VN') : 'N/A'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
