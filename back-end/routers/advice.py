@@ -71,7 +71,7 @@ def format_user_profile(user_profile: dict) -> dict:
 async def stream_advice(
     thread_id: Optional[str] = Form(None),
     user_query: str = Form(..., min_length=1),
-    img_file: UploadFile = File(...),
+    img_file: Optional[UploadFile] = File(None),
     # user_id: str = Header(..., alias="X-User-ID"),
     current_user_email: str = Depends(get_current_user),
     db: Session = Depends(get_db),
