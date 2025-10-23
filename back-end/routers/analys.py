@@ -4,6 +4,7 @@ from typing import Optional
 from database.connection import get_db
 from database.crud import (
     create_user_meal,
+    get_user_by_email,
     get_user_by_id,
     get_user_meal_by_id,
     get_user_meals,
@@ -20,6 +21,7 @@ from pydantic import BaseModel, Field
 from services.cloudinary_service import CloudinaryService, get_cloudinary_service
 from services.workflow_service import WorkflowService
 from sqlalchemy.orm import Session
+from utils.auth import get_current_user
 from utils.logger import setup_logger
 
 logger = setup_logger(__name__)
@@ -58,6 +60,7 @@ async def upload_and_analyze_image(
     meal_time: Optional[str] = Form(None, description="Thời gian bữa ăn (ISO format)"),
     cloudinary_service: CloudinaryService = Depends(get_cloudinary_service),
     workflow_service: WorkflowService = Depends(get_workflow_service),
+    current_user_email: str = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
@@ -77,23 +80,18 @@ async def upload_and_analyze_image(
     - meal_time: Thời gian bữa ăn (ISO format, e.g., 2025-01-01T12:30:00) \
         - optional, defaults to current time
 
-    TODO: Implement JWT authentication to get user_id
     """
     meal_id = None
     try:
-        # TODO: Replace with JWT authentication
-        # For now, using mock user_id = 1
-        user_id_int = 1
-        user_id = str(user_id_int)
-
-        # Verify user exists
-        user = get_user_by_id(db, user_id_int)
+        user = get_user_by_email(db, current_user_email)
         if not user:
             raise HTTPException(
                 status_code=404,
-                detail=f"Mock user with ID {user_id_int} not found. \
+                detail=f"User with email {current_user_email} not found. \
                     Please ensure user exists in database.",
             )
+
+        user_id = user.id
 
         # Validate meal_type
         try:
@@ -136,7 +134,7 @@ async def upload_and_analyze_image(
         # Tạo record meal trong database với status PENDING
         meal = create_user_meal(
             db=db,
-            user_id=user_id_int,
+            user_id=user_id,
             image_url=image_url,
             meal_type=meal_type_enum,
             meal_time=meal_time_dt,
@@ -213,17 +211,22 @@ async def upload_and_analyze_image(
 @router.get("/meals/{meal_id}")
 async def get_meal_detail(
     meal_id: int,
+    current_user_email: str = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
     Lấy chi tiết một bữa ăn theo ID
-
-    TODO: Implement JWT authentication to get user_id
     """
     try:
-        # TODO: Replace with JWT authentication
-        # For now, using mock user_id = 1
-        user_id_int = 1
+        user = get_user_by_email(db, current_user_email)
+        if not user:
+            raise HTTPException(
+                status_code=404,
+                detail=f"User with email {current_user_email} not found. \
+                    Please ensure user exists in database.",
+            )
+
+        user_id = user.id
 
         # Get meal
         meal = get_user_meal_by_id(db, meal_id)
@@ -231,7 +234,7 @@ async def get_meal_detail(
             raise HTTPException(status_code=404, detail="Meal not found")
 
         # Verify ownership
-        if meal.user_id != user_id_int:
+        if meal.user_id != user_id:
             raise HTTPException(status_code=403, detail="Access denied")
 
         # Format response
@@ -287,6 +290,7 @@ async def get_meal_history(
     limit: int = Query(
         50, ge=1, le=100, description="Maximum number of records to return"
     ),
+    current_user_email: str = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
@@ -296,22 +300,17 @@ async def get_meal_history(
     - meal_type: Filter theo loại bữa ăn (optional)
     - skip: Pagination - số records bỏ qua (default: 0)
     - limit: Pagination - số records tối đa (default: 50, max: 100)
-
-    TODO: Implement JWT authentication to get user_id
     """
     try:
-        # TODO: Replace with JWT authentication
-        # For now, using mock user_id = 1
-        user_id_int = 1
-
-        # Verify user exists
-        user = get_user_by_id(db, user_id_int)
+        user = get_user_by_email(db, current_user_email)
         if not user:
             raise HTTPException(
                 status_code=404,
-                detail=f"Mock user with ID {user_id_int} not found.\
+                detail=f"User with email {current_user_email} not found. \
                     Please ensure user exists in database.",
             )
+
+        user_id = user.id
 
         # Validate meal_type if provided
         meal_type_enum = None
@@ -328,7 +327,7 @@ async def get_meal_history(
         # Get meals
         meals = get_user_meals(
             db=db,
-            user_id=user_id_int,
+            user_id=user_id,
             skip=skip,
             limit=limit,
             meal_type=meal_type_enum,
@@ -386,6 +385,7 @@ async def get_nutrition_statistics(
     meal_type: str = Query(
         None, description="Filter by meal type (breakfast, lunch, dinner, snack)"
     ),
+    current_user_email: str = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
@@ -405,19 +405,23 @@ async def get_nutrition_statistics(
     - Breakdown theo loại bữa ăn
     - Timeline theo ngày
 
-    TODO: Implement JWT authentication to get user_id
     """
     try:
-        # TODO: Replace with JWT authentication
-        # For now, using mock user_id = 1
-        user_id_int = 1
-
-        # Verify user exists
-        user = get_user_by_id(db, user_id_int)
+        user = get_user_by_email(db, current_user_email)
         if not user:
             raise HTTPException(
                 status_code=404,
-                detail=f"Mock user with ID {user_id_int} not found. \
+                detail=f"User with email {current_user_email} not found. \
+                    Please ensure user exists in database.",
+            )
+        user_id = user.id
+
+        # Verify user exists
+        user = get_user_by_id(db, user_id)
+        if not user:
+            raise HTTPException(
+                status_code=404,
+                detail=f"User with ID {user_id} not found. \
                     Please ensure user exists in database.",
             )
 
@@ -455,7 +459,7 @@ async def get_nutrition_statistics(
         # Get meals in date range
         meals = get_user_meals_by_date_range(
             db=db,
-            user_id=user_id_int,
+            user_id=user_id,
             start_date=start_dt,
             end_date=end_dt,
             meal_type=meal_type_enum,
