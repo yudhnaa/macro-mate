@@ -1,40 +1,40 @@
-# 🐳 Docker Setup cho Macro Mate API
+# Docker Setup for Macro Mate API
 
-## 📋 Yêu cầu
+## Requirements
 
-- Docker >= 20.10
-- Docker Compose >= 2.0
+* Docker >= 20.10
+* Docker Compose >= 2.0
 
-## 🚀 Cách sử dụng
+## Usage
 
-### 1. Cấu hình môi trường
+### 1. Environment Configuration
 
 ```bash
-# Copy file .env.example thành .env
+# Copy .env.example to .env
 cp .env.example .env
 
-# Chỉnh sửa file .env với thông tin của bạn
+# Edit .env with your configuration
 nano .env
 ```
 
-### 2. Build và chạy ứng dụng
+### 2. Build and Run the Application
 
-#### Chạy tất cả services (FastAPI + PostgreSQL + Redis)
+#### Run all services (FastAPI + PostgreSQL + Redis)
 
 ```bash
-# Build và start tất cả services
+# Build and start all services
 docker-compose up -d
 
-# Xem logs
+# View logs
 docker-compose logs -f
 
-# Xem logs của service cụ thể
+# View logs for a specific service
 docker-compose logs -f api
 docker-compose logs -f redis
 docker-compose logs -f postgres
 ```
 
-#### Chỉ chạy Redis và PostgreSQL (development mode)
+#### Run only Redis and PostgreSQL (development mode)
 
 ```bash
 # Start only database services
@@ -44,23 +44,23 @@ docker-compose up -d postgres redis
 python main.py
 ```
 
-### 3. Quản lý containers
+### 3. Manage Containers
 
 ```bash
-# Dừng tất cả services
+# Stop all services
 docker-compose down
 
-# Dừng và xóa volumes (cẩn thận: sẽ mất dữ liệu!)
+# Stop and remove volumes (caution: this will delete data)
 docker-compose down -v
 
 # Restart services
 docker-compose restart
 
-# Rebuild sau khi thay đổi code
+# Rebuild after code changes
 docker-compose up -d --build
 ```
 
-### 4. Kiểm tra health
+### 4. Health Checks
 
 ```bash
 # API health check
@@ -73,22 +73,22 @@ docker-compose exec redis redis-cli ping
 docker-compose exec postgres pg_isready -U macromate
 ```
 
-## 🔧 Các lệnh hữu ích
+## Useful Commands
 
-### Truy cập vào container
+### Access Containers
 
 ```bash
-# Truy cập API container
+# Access API container
 docker-compose exec api bash
 
-# Truy cập Redis CLI
+# Access Redis CLI
 docker-compose exec redis redis-cli
 
-# Truy cập PostgreSQL
+# Access PostgreSQL
 docker-compose exec postgres psql -U macromate -d macromate_db
 ```
 
-### Database migrations
+### Database Migrations
 
 ```bash
 # Run migrations
@@ -98,102 +98,102 @@ docker-compose exec api python add_profile_fields_migration.py
 docker-compose exec api python -c "from database.init_db import init_db; init_db()"
 ```
 
-### Xem logs
+### View Logs
 
 ```bash
-# Follow logs của tất cả services
+# Follow logs of all services
 docker-compose logs -f
 
-# Follow logs của API
+# Follow logs of API
 docker-compose logs -f api
 
-# Xem 100 dòng logs cuối
+# Show last 100 log lines
 docker-compose logs --tail=100 api
 ```
 
-### Monitoring resources
+### Monitor Resources
 
 ```bash
-# Xem resource usage
+# View resource usage
 docker stats
 
-# Xem chi tiết của các containers
+# View container details
 docker-compose ps
 ```
 
-## 🌍 Endpoints
+## Endpoints
 
-Khi chạy thành công, bạn có thể truy cập:
+Once running successfully, you can access:
 
-- **API**: http://localhost:8000
-- **API Docs (Swagger)**: http://localhost:8000/docs
-- **API Docs (ReDoc)**: http://localhost:8000/redoc
-- **Health Check**: http://localhost:8000/health
-- **PostgreSQL**: localhost:5432
-- **Redis**: localhost:6379
+* **API**: [http://localhost:8000](http://localhost:8000)
+* **API Docs (Swagger)**: [http://localhost:8000/docs](http://localhost:8000/docs)
+* **API Docs (ReDoc)**: [http://localhost:8000/redoc](http://localhost:8000/redoc)
+* **Health Check**: [http://localhost:8000/health](http://localhost:8000/health)
+* **PostgreSQL**: localhost:5432
+* **Redis**: localhost:6379
 
-## 📁 Volumes
+## Volumes
 
-Dữ liệu được lưu trữ trong Docker volumes:
+Data is stored in Docker volumes:
 
-- `postgres_data`: Dữ liệu PostgreSQL
-- `redis_data`: Dữ liệu Redis (AOF persistence)
+* `postgres_data`: PostgreSQL data
+* `redis_data`: Redis data (AOF persistence)
 
-## 🔐 Security Notes
+## Security Notes
 
-**QUAN TRỌNG**: Trong môi trường production:
+**IMPORTANT:** For production environments:
 
-1. ✅ Thay đổi tất cả passwords và secret keys
-2. ✅ Set `DEBUG=false`
-3. ✅ Sử dụng HTTPS
-4. ✅ Giới hạn CORS origins
-5. ✅ Sử dụng environment variables, không commit file `.env`
-6. ✅ Sử dụng secrets management (AWS Secrets Manager, etc.)
+1. Change all passwords and secret keys
+2. Set `DEBUG=false`
+3. Use HTTPS
+4. Restrict CORS origins
+5. Use environment variables, do not commit `.env`
+6. Use a secrets manager (e.g., AWS Secrets Manager)
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
-### Port đã được sử dụng
+### Port Already in Use
 
 ```bash
-# Thay đổi port trong file .env
+# Change ports in the .env file
 API_PORT=8001
 POSTGRES_PORT=5433
 REDIS_PORT=6380
 ```
 
-### Container không start
+### Container Not Starting
 
 ```bash
-# Xem logs để debug
+# Check logs for debugging
 docker-compose logs api
 
-# Kiểm tra status
+# Check service status
 docker-compose ps
 ```
 
-### Database connection errors
+### Database Connection Errors
 
 ```bash
-# Kiểm tra PostgreSQL đã ready chưa
+# Check if PostgreSQL is ready
 docker-compose exec postgres pg_isready
 
 # Restart PostgreSQL
 docker-compose restart postgres
 ```
 
-### Redis connection errors
+### Redis Connection Errors
 
 ```bash
-# Kiểm tra Redis
+# Check Redis
 docker-compose exec redis redis-cli ping
 
 # Restart Redis
 docker-compose restart redis
 ```
 
-## 📦 Production Deployment
+## Production Deployment
 
-Để deploy lên production, bạn có thể:
+You can deploy to production using one of the following options:
 
 ### Option 1: Docker Compose (Simple)
 
@@ -208,7 +208,7 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 ### Option 2: Kubernetes
 
-Chuyển đổi docker-compose sang Kubernetes manifests:
+Convert Docker Compose to Kubernetes manifests:
 
 ```bash
 kompose convert
@@ -217,13 +217,13 @@ kubectl apply -f .
 
 ### Option 3: Cloud Services
 
-- **AWS**: Elastic Container Service (ECS) hoặc EKS
-- **Google Cloud**: Cloud Run hoặc GKE
-- **Azure**: Container Instances hoặc AKS
+* **AWS**: Elastic Container Service (ECS) or EKS
+* **Google Cloud**: Cloud Run or GKE
+* **Azure**: Container Instances or AKS
 
-## 📚 Tài liệu tham khảo
+## References
 
-- [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [Docker Documentation](https://docs.docker.com/)
-- [Redis Documentation](https://redis.io/documentation)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+* [FastAPI Documentation](https://fastapi.tiangolo.com/)
+* [Docker Documentation](https://docs.docker.com/)
+* [Redis Documentation](https://redis.io/documentation)
+* [PostgreSQL Documentation](https://www.postgresql.org/docs/)
