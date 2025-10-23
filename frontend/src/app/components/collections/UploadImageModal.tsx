@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { FoodImage } from "@/types/collection.types";
+import { uploadAndAnalyzeImage } from "@/lib/api/analysis.api";
 
 interface UploadImageModalProps {
   onClose: () => void;
@@ -19,8 +20,12 @@ export default function UploadImageModal({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [date, setDate] = useState<string>(initialDate.toISOString().split('T')[0]);
+  const [time, setTime] = useState<string>(
+    initialDate.toTimeString().slice(0, 5) || new Date().toTimeString().slice(0, 5)
+  );
   const [mealType, setMealType] = useState<'breakfast' | 'lunch' | 'dinner' | 'snack'>(initialMealType);
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string>("");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -47,21 +52,60 @@ export default function UploadImageModal({
     }
 
     setUploading(true);
+    setError("");
 
-    // Simulate upload - tạo mock image mới
-    setTimeout(() => {
+    try {
+      // Combine date and time to create ISO string
+      const mealDateTime = `${date}T${time}:00`;
+
+      // Call the API
+      const response = await uploadAndAnalyzeImage(
+        selectedFile,
+        mealType,
+        mealDateTime
+      );
+
+      // Transform API response to FoodImage
       const newImage: FoodImage = {
-        id: Date.now().toString(),
-        imageUrl: previewUrl,
+        id: response.meal_id.toString(),
+        imageUrl: response.upload.url,
+        thumbnailUrl: response.upload.thumbnail_url,
         date,
         mealType,
-        analyzed: false,
+        analyzed: true,
         createdAt: new Date().toISOString(),
+        dishName: response.analysis.dish_name,
+        ingredients: response.analysis.ingredients,
+        safety: response.analysis.safety,
+        nutritionInfo: {
+          calories: response.nutrition_summary.total_calories,
+          protein: response.nutrition_summary.total_protein,
+          fat: response.nutrition_summary.total_fat,
+          carbs: response.nutrition_summary.total_carbs,
+          fiber: response.nutrition_summary.total_fiber,
+          sodium: response.nutrition_summary.total_sodium,
+          foodItems: response.analysis.ingredients.map(ing => ing.name),
+        },
+        imageMetadata: {
+          public_id: response.upload.public_id,
+          width: response.upload.width,
+          height: response.upload.height,
+          format: response.upload.format,
+          size: response.upload.size,
+        },
       };
 
       onSuccess(newImage);
+    } catch (err) {
+      console.error("Upload error:", err);
+      setError(
+        err && typeof err === 'object' && 'detail' in err
+          ? String(err.detail)
+          : "Failed to upload and analyze image. Please try again."
+      );
+    } finally {
       setUploading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -158,6 +202,22 @@ export default function UploadImageModal({
             />
           </div>
 
+          {/* Time */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Time (Optional)
+            </label>
+            <input
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Defaults to current time if not specified
+            </p>
+          </div>
+
           {/* Meal Type */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -181,6 +241,31 @@ export default function UploadImageModal({
             </div>
           </div>
 
+          {/* Error Message */}
+          {error && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-start gap-3">
+                <svg
+                  className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-red-800">Upload Error</h3>
+                  <p className="text-sm text-red-700 mt-1">{error}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Actions */}
           <div className="flex gap-3 pt-4">
             <button
@@ -193,10 +278,36 @@ export default function UploadImageModal({
             </button>
             <button
               type="submit"
-              className="flex-1 px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               disabled={uploading || !selectedFile}
             >
-              {uploading ? "Uploading..." : "Upload"}
+              {uploading ? (
+                <>
+                  <svg
+                    className="animate-spin h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  Analyzing...
+                </>
+              ) : (
+                "Upload & Analyze"
+              )}
             </button>
           </div>
         </form>

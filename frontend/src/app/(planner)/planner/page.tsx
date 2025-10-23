@@ -4,14 +4,38 @@ import React from 'react';
 import DateNavigator from '@/app/components/planner/DateNavigator';
 import MealsSection from '@/app/components/planner/MealsSection';
 import NutritionPanel from '@/app/components/planner/NutritionPanel';
+import { FoodImage } from '@/types/collection.types';
 
 export default function PlannerPage() {
   const [selectedDate, setSelectedDate] = React.useState(new Date());
+  const [mealImages, setMealImages] = React.useState<{ [key: string]: FoodImage[] }>({
+    breakfast: [],
+    lunch: [],
+    dinner: [],
+  });
 
   const handleDateChange = (date: Date) => {
     setSelectedDate(date);
     console.log('Date changed to:', date);
   };
+
+  // Calculate total nutrition from all meals
+  const calculateTotalNutrition = React.useMemo(() => {
+    const allMeals = [...mealImages.breakfast, ...mealImages.lunch, ...mealImages.dinner];
+    
+    return allMeals.reduce(
+      (totals, meal) => ({
+        calories: totals.calories + (meal.nutritionInfo?.calories || 0),
+        protein: totals.protein + (meal.nutritionInfo?.protein || 0),
+        carbs: totals.carbs + (meal.nutritionInfo?.carbs || 0),
+        fat: totals.fat + (meal.nutritionInfo?.fat || 0),
+        fiber: totals.fiber + (meal.nutritionInfo?.fiber || 0),
+        sodium: totals.sodium + (meal.nutritionInfo?.sodium || 0),
+        cholesterol: 0, // Not tracked in current API
+      }),
+      { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sodium: 0, cholesterol: 0 }
+    );
+  }, [mealImages]);
 
   return (
     <div className="p-6">
@@ -23,18 +47,29 @@ export default function PlannerPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Meals Section - Takes 2 columns */}
           <div className="lg:col-span-2">
-            <MealsSection selectedDate={selectedDate} />
+            <MealsSection 
+              selectedDate={selectedDate}
+              mealImages={mealImages}
+              onMealImagesChange={setMealImages}
+            />
           </div>
 
           {/* Nutrition Panel - Takes 1 column */}
           <div className="lg:col-span-1">
-            <NutritionPanel />
+            <NutritionPanel data={calculateTotalNutrition} />
           </div>
         </div>
 
         {/* Bottom Navigation */}
         <div className="mt-6 flex justify-between items-center">
-          <button className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+          <button 
+            onClick={() => {
+              const prevDate = new Date(selectedDate);
+              prevDate.setDate(prevDate.getDate() - 1);
+              handleDateChange(prevDate);
+            }}
+            className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+          >
             <svg
               className="w-5 h-5"
               fill="none"
@@ -48,11 +83,18 @@ export default function PlannerPage() {
                 d="M15 19l-7-7 7-7"
               />
             </svg>
-            <span>Thursday, Oct 16</span>
+            <span>Previous Day</span>
           </button>
 
-          <button className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-            <span>Saturday, Oct 18</span>
+          <button 
+            onClick={() => {
+              const nextDate = new Date(selectedDate);
+              nextDate.setDate(nextDate.getDate() + 1);
+              handleDateChange(nextDate);
+            }}
+            className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+          >
+            <span>Next Day</span>
             <svg
               className="w-5 h-5"
               fill="none"

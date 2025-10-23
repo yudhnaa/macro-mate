@@ -212,17 +212,58 @@ export default function ChatbotPage() {
     "Track today's calories",
   ];
 
+  // Hàm để bắt đầu chat mới
+  const handleNewChat = () => {
+    setMessages([
+      {
+        role: "assistant",
+        content:
+          "Hello! I'm your Macro Mate assistant. How can I help you with your nutrition and meal planning today?",
+        timestamp: new Date(),
+      },
+    ]);
+    setInputMessage("");
+    setSelectedImage(null);
+    setImageFile(null);
+    localStorage.removeItem("chatbot_thread_id");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold text-gray-800">
-            Macro Mate Assistant
-          </h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Your personal nutrition and meal planning assistant
-          </p>
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800">
+              Macro Mate Assistant
+            </h1>
+            <p className="text-sm text-gray-600 mt-1">
+              Your personal nutrition and meal planning assistant
+            </p>
+          </div>
+          <button
+            onClick={handleNewChat}
+            className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2"
+            title="Start a new chat"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            <span>New Chat</span>
+          </button>
         </div>
       </div>
 

@@ -71,10 +71,10 @@ class FoodDB(Base):
     needs_grill = Column(Boolean, default=False)
 
     complexity = Column(Integer, nullable=True)
-    cook_time = Column(String(50), nullable=True)
-    prep_time = Column(String(50), nullable=True)
-    wait_time = Column(String(50), nullable=True)
-    total_time = Column(String(50), nullable=True)
+    cook_time = Column(Float, nullable=True) 
+    prep_time = Column(Float, nullable=True) 
+    wait_time = Column(Float, nullable=True) 
+    total_time = Column(Float, nullable=True)
 
     grams = Column(Float, nullable=True)
     grams_per_unit = Column(Float, nullable=True)

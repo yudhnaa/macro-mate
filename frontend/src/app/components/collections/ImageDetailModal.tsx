@@ -88,9 +88,14 @@ export default function ImageDetailModal({
           {/* Meta Information */}
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">
+              {image.dishName && (
+                <h3 className="text-xl font-bold text-gray-900 mb-1">
+                  {image.dishName}
+                </h3>
+              )}
+              <p className="text-lg font-semibold text-gray-700">
                 {formatDate(image.date)}
-              </h3>
+              </p>
               <p className="text-sm text-gray-500">
                 Uploaded on {new Date(image.createdAt).toLocaleDateString()}
               </p>
@@ -118,6 +123,52 @@ export default function ImageDetailModal({
             </div>
           </div>
 
+          {/* Safety Information */}
+          {image.safety && (
+            <div className={`rounded-lg p-4 ${
+              image.safety.is_food && !image.safety.is_potentially_poisonous
+                ? 'bg-green-50 border border-green-200'
+                : 'bg-red-50 border border-red-200'
+            }`}>
+              <div className="flex items-start gap-3">
+                <svg
+                  className={`w-6 h-6 flex-shrink-0 mt-0.5 ${
+                    image.safety.is_food && !image.safety.is_potentially_poisonous
+                      ? 'text-green-600'
+                      : 'text-red-600'
+                  }`}
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <div className="flex-1">
+                  <h4 className={`font-semibold ${
+                    image.safety.is_food && !image.safety.is_potentially_poisonous
+                      ? 'text-green-800'
+                      : 'text-red-800'
+                  }`}>
+                    Safety Check
+                  </h4>
+                  <p className={`text-sm mt-1 ${
+                    image.safety.is_food && !image.safety.is_potentially_poisonous
+                      ? 'text-green-700'
+                      : 'text-red-700'
+                  }`}>
+                    {image.safety.reason}
+                  </p>
+                  <p className="text-xs mt-1 text-gray-600">
+                    Confidence: {(image.safety.confidence * 100).toFixed(0)}%
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Nutrition Information */}
           {image.nutritionInfo ? (
             <div>
@@ -125,7 +176,56 @@ export default function ImageDetailModal({
                 Nutrition Information
               </h4>
 
+              {/* Ingredients Detail */}
+              {image.ingredients && image.ingredients.length > 0 && (
+                <div className="mb-6">
+                  <h5 className="font-semibold text-gray-700 mb-3">Ingredients</h5>
+                  <div className="space-y-3">
+                    {image.ingredients.map((ingredient, index) => (
+                      <div
+                        key={index}
+                        className="bg-gray-50 rounded-lg p-4 border border-gray-200"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <h6 className="font-semibold text-gray-900">{ingredient.name}</h6>
+                          <span className="text-sm text-gray-600">
+                            ~{ingredient.estimated_weight}g
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-xs">
+                          <div className="text-center">
+                            <div className="text-gray-500">Cal</div>
+                            <div className="font-semibold">{ingredient.nutrition.calories}</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-gray-500">Protein</div>
+                            <div className="font-semibold">{ingredient.nutrition.protein}g</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-gray-500">Fat</div>
+                            <div className="font-semibold">{ingredient.nutrition.fat}g</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-gray-500">Carbs</div>
+                            <div className="font-semibold">{ingredient.nutrition.carbs}g</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-gray-500">Fiber</div>
+                            <div className="font-semibold">{ingredient.nutrition.fiber}g</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-gray-500">Sodium</div>
+                            <div className="font-semibold">{ingredient.nutrition.sodium}g</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Main Macros */}
+              <h5 className="font-semibold text-gray-700 mb-3">Total Nutrition</h5>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                 <div className="bg-orange-50 rounded-lg p-4 text-center">
                   <div className="text-3xl font-bold text-orange-600">
@@ -175,7 +275,7 @@ export default function ImageDetailModal({
                     {image.nutritionInfo.sodium !== undefined && (
                       <div>
                         <span className="text-gray-600">Sodium:</span>
-                        <span className="font-semibold ml-2">{image.nutritionInfo.sodium}mg</span>
+                        <span className="font-semibold ml-2">{image.nutritionInfo.sodium}g</span>
                       </div>
                     )}
                   </div>
