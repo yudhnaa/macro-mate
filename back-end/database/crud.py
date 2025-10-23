@@ -1,6 +1,14 @@
 from typing import Dict, List, Optional
 
-from database.models import FoodDB, UserDB
+from database.models import (
+    AnalysisStatusDB,
+    FoodDB,
+    MealItemDB,
+    MealTypeDB,
+    NutritionAnalysisLogDB,
+    UserDB,
+    UserMealDB,
+)
 from sqlalchemy.orm import Session, joinedload
 
 
@@ -174,3 +182,180 @@ def delete_food(db: Session, food_id: int) -> bool:
     db.delete(food)
     db.commit()
     return True
+
+
+# ============= User Meal CRUD Operations =============
+
+
+def create_user_meal(
+    db: Session,
+    user_id: int,
+    image_url: str,
+    meal_type: MealTypeDB = MealTypeDB.SNACK,
+    meal_name: Optional[str] = None,
+) -> UserMealDB:
+    """
+    Create a new user meal record
+
+    Args:
+        db: Database session
+        user_id: User ID
+        image_url: URL of the uploaded image
+        meal_type: Type of meal (breakfast, lunch, dinner, snack)
+        meal_name: Optional name of the meal
+    """
+    db_meal = UserMealDB(
+        user_id=user_id,
+        image_url=image_url,
+        meal_type=meal_type,
+        meal_name=meal_name,
+        analysis_status=AnalysisStatusDB.PENDING,
+    )
+    db.add(db_meal)
+    db.commit()
+    db.refresh(db_meal)
+    return db_meal
+
+
+def update_meal_analysis(
+    db: Session,
+    meal_id: int,
+    analysis_data: Dict,
+    model_name: Optional[str] = None,
+) -> Optional[UserMealDB]:
+    """
+    Update meal with analysis results
+
+    Args:
+        db: Database session
+        meal_id: Meal ID
+        analysis_data: Analysis result containing dish_name, ingredients, etc.
+        model_name: Name of the model used for analysis
+    """
+    meal = db.query(UserMealDB).filter(UserMealDB.id == meal_id).first()
+    if not meal:
+        return None
+
+    # Update meal name if available
+    if "dish_name" in analysis_data and analysis_data["dish_name"]:
+        meal.meal_name = analysis_data["dish_name"]
+
+    # Calculate total nutrition from ingredients
+    total_calories = 0.0
+    total_protein = 0.0
+    total_fat = 0.0
+    total_carbs = 0.0
+    total_fiber = 0.0
+    total_sodium = 0.0
+
+    ingredients = analysis_data.get("ingredients", [])
+
+    # Create meal items from ingredients
+    for ingredient in ingredients:
+        nutrition = ingredient.get("nutrition", {})
+
+        # Add to totals
+        total_calories += nutrition.get("calories", 0) or 0
+        total_protein += nutrition.get("protein", 0) or 0
+        total_fat += nutrition.get("fat", 0) or 0
+        total_carbs += nutrition.get("carbs", 0) or 0
+        total_fiber += nutrition.get("fiber", 0) or 0
+        total_sodium += nutrition.get("sodium", 0) or 0
+
+        # Create meal item
+        meal_item = MealItemDB(
+            meal_id=meal_id,
+            name=ingredient.get("name"),
+            estimated_weight=ingredient.get("estimated_weight"),
+            calories=nutrition.get("calories"),
+            protein=nutrition.get("protein"),
+            fat=nutrition.get("fat"),
+            carbs=nutrition.get("carbs"),
+            fiber=nutrition.get("fiber"),
+            sodium=nutrition.get("sodium"),
+            nutrition_json=nutrition,
+        )
+        db.add(meal_item)
+
+    # Update meal totals
+    meal.total_calories = total_calories
+    meal.total_protein = total_protein
+    meal.total_fat = total_fat
+    meal.total_carbs = total_carbs
+    meal.total_fiber = total_fiber
+    meal.total_sodium = total_sodium
+    meal.analysis_status = AnalysisStatusDB.SUCCESS
+
+    # Create analysis log
+    analysis_log = NutritionAnalysisLogDB(
+        meal_id=meal_id,
+        model_name=model_name,
+        raw_response=analysis_data,
+        confidence=analysis_data.get("confidence"),
+    )
+    db.add(analysis_log)
+
+    db.commit()
+    db.refresh(meal)
+    return meal
+
+
+def get_user_meal_by_id(db: Session, meal_id: int) -> Optional[UserMealDB]:
+    """Get user meal by ID with all related data"""
+    return (
+        db.query(UserMealDB)
+        .options(joinedload(UserMealDB.items))
+        .filter(UserMealDB.id == meal_id)
+        .first()
+    )
+
+
+def get_user_meals(
+    db: Session,
+    user_id: int,
+    skip: int = 0,
+    limit: int = 100,
+    meal_type: Optional[MealTypeDB] = None,
+) -> List[UserMealDB]:
+    """
+    Get list of user meals
+
+    Args:
+        db: Database session
+        user_id: User ID
+        skip: Number of records to skip
+        limit: Maximum number of records to return
+        meal_type: Optional filter by meal type
+    """
+    query = (
+        db.query(UserMealDB)
+        .options(joinedload(UserMealDB.items))
+        .filter(UserMealDB.user_id == user_id)
+    )
+
+    if meal_type:
+        query = query.filter(UserMealDB.meal_type == meal_type)
+
+    return query.order_by(UserMealDB.meal_time.desc()).offset(skip).limit(limit).all()
+
+
+def mark_meal_failed(
+    db: Session, meal_id: int, error_message: str
+) -> Optional[UserMealDB]:
+    """Mark meal analysis as failed"""
+    meal = db.query(UserMealDB).filter(UserMealDB.id == meal_id).first()
+    if not meal:
+        return None
+
+    meal.analysis_status = AnalysisStatusDB.FAILED
+
+    # Create analysis log with error
+    analysis_log = NutritionAnalysisLogDB(
+        meal_id=meal_id,
+        raw_response={"error": error_message},
+    )
+    db.add(analysis_log)
+
+    db.commit()
+    db.refresh(meal)
+    return meal
