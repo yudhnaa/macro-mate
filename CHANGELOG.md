@@ -5,7 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [Released]
+
+## [v0.1.0] - 2025-10-23
+
+### Added
+
+- Initial release of Macro Mate
+- User authentication and profile management
+- Food recognition from images using AI
+- Nutritional information extraction
+- Meal planning and tracking features
+- Recipe collection management
+- Docker support for easy deployment
+- Comprehensive API documentation
+- Frontend with Next.js and TypeScript
+- Backend with FastAPI and PostgreSQL
+- LangGraph workflow integration
+- Redis caching support
+
+### Features
+
+- AI-powered food image analysis
+- Personalized nutrition advice
+- User profile customization
+- Secure authentication with JWT
+- RESTful API endpoints
+- Responsive web interface
 
 ## Release Notes
 
