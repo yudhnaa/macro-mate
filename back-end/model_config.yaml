@@ -24,7 +24,7 @@ llm:
   providers:
     gemini:
       model: gemini-2.5-flash
-      cost_per_1k_tokens: 0.0  # Free tier
+      cost_per_1k_tokens: 0.0 # Free tier
       rate_limit:
         requests_per_minute: 15
 

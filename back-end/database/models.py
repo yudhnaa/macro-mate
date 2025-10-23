@@ -89,6 +89,20 @@ class FoodDB(Base):
     )
 
 
+class DirectionDB(Base):
+    __tablename__ = "direction"
+
+    id = Column(Integer, primary_key=True, index=True)
+    order = Column(Integer, nullable=False)
+    direction = Column(Text, nullable=False)
+    food_id = Column(
+        Integer, ForeignKey("foods.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+
+    # Relationship
+    food = relationship("FoodDB", back_populates="direction")
+
+
 class MealTypeDB(str, Enum):
     BREAKFAST = "breakfast"
     LUNCH = "lunch"
@@ -118,7 +132,6 @@ class UserMealDB(Base):
     meal_time = Column(DateTime(timezone=True), server_default=func.now())
 
     image_url = Column(Text, nullable=True)
-    image_vector = Column(Vector(3072), nullable=True)
 
     analysis_status = Column(
         SQLEnum(AnalysisStatusDB, name="analysis_status_enum"),

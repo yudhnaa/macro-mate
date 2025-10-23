@@ -9,4 +9,4 @@ class NutritionInfo(BaseModel):
     fat: Optional[float] = Field(None, description="Chất béo (g)")
     carbs: Optional[float] = Field(None, description="Carbohydrate (g)")
     fiber: Optional[float] = Field(None, description="Chất xơ (g)")
-    sodium: Optional[float] = Field(None, description="Natri (mg)")
+    sodium: Optional[float] = Field(None, description="Muối (g)")
