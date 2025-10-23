@@ -323,9 +323,10 @@ This project is licensed under the MIT License - see the [LICENSE](../LICENSE) f
 
 **Last Updated:** October 23, 2025
 
-**Version:** 0.2.0
+**Version:** 0.1.0
 
 **Maintained by:** Macro Mate Development Team
+
 - Phí Minh Quang - Contact: 2251012121quang@ou.edu.vn
 - Phạm Đình Dương - Contact: 2251052025duong@ou.edu.vn
 - Hoang Anh Duy - Contact: 2251012046@ou.edu.vn

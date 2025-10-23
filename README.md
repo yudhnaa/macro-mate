@@ -415,3 +415,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Issues**: [GitHub Issues](https://github.com/yudhnaa/macro-mate/issues)
 - **Repository**: [github.com/yudhnaa/macro-mate](https://github.com/yudhnaa/macro-mate)
+
+## Maintained by: Macro Mate Development Team
+
+- Phí Minh Quang - Contact: 2251012121quang@ou.edu.vn
+- Phạm Đình Dương - Contact: 2251052025duong@ou.edu.vn
+- Hoang Anh Duy - Contact: 2251012046@ou.edu.vn
