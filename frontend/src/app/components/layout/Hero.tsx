@@ -13,7 +13,7 @@ export default function Hero() {
           {/* Left Content */}
           <div className="flex flex-col justify-center space-y-6">
             <div className="space-y-4">
-              <h1 
+              <h1
                 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none min-h-[100px] sm:min-h-[100px]"
                 style={{ color: COLORS.text.primary }}
               >
@@ -38,16 +38,16 @@ export default function Hero() {
                   cursor={true}
                 />
               </h1>
-              <p 
+              <p
                 className="max-w-[600px] text-lg md:text-xl leading-relaxed"
                 style={{ color: COLORS.text.secondary }}
               >
-                Eat This Much creates personalized meal plans based on your food preferences, budget, and schedule. 
-                Reach your diet and nutritional goals with our calorie calculator, weekly meal plans, grocery 
+                Eat This Much creates personalized meal plans based on your food preferences, budget, and schedule.
+                Reach your diet and nutritional goals with our calorie calculator, weekly meal plans, grocery
                 lists and more.
               </p>
             </div>
-            
+
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/register">
@@ -135,7 +135,7 @@ export default function Hero() {
             </div>
 
             {/* Floating Card 1 - Top Left */}
-            <div 
+            <div
               className="absolute top-[5%] left-[-5%] bg-white rounded-xl shadow-xl p-3 z-20 animate-float-delayed-1 hover:scale-110 transition-transform"
             >
               <div className="flex items-center gap-2">
@@ -154,7 +154,7 @@ export default function Hero() {
             </div>
 
             {/* Floating Card 2 - Top Right */}
-            <div 
+            <div
               className="absolute top-[15%] right-[-5%] bg-white rounded-xl shadow-xl p-3 z-20 animate-float-delayed-2 hover:scale-110 transition-transform"
             >
               <div className="flex items-center gap-2">
@@ -171,7 +171,7 @@ export default function Hero() {
             </div>
 
             {/* Floating Card 3 - Bottom Left */}
-            <div 
+            <div
               className="absolute bottom-[20%] left-[-8%] bg-white rounded-xl shadow-xl p-3 z-20 animate-float-delayed-3 hover:scale-110 transition-transform"
             >
               <div className="flex items-center gap-2">
@@ -188,7 +188,7 @@ export default function Hero() {
             </div>
 
             {/* Floating Card 4 - Bottom Right */}
-            <div 
+            <div
               className="absolute bottom-[15%] right-[-8%] bg-white rounded-xl shadow-xl p-3 z-20 animate-float-delayed-4 hover:scale-110 transition-transform"
             >
               <div className="flex items-center gap-2">
@@ -205,11 +205,11 @@ export default function Hero() {
             </div>
 
             {/* Background Decoration Circles */}
-            <div 
+            <div
               className="absolute top-[-15%] right-[-10%] w-48 h-48 rounded-full opacity-30 blur-3xl -z-10"
               style={{ backgroundColor: COLORS.primary.light }}
             />
-            <div 
+            <div
               className="absolute bottom-[-15%] left-[-10%] w-40 h-40 rounded-full opacity-30 blur-3xl -z-10"
               style={{ backgroundColor: COLORS.primary.DEFAULT }}
             />

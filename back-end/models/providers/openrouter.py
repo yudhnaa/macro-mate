@@ -76,12 +76,12 @@ class OpenRouterVLM(BaseVisionLanguageModel):
                                 {"type": "image_url", "image_url": {"url": part["url"]}}
                             )
                         elif part.get("source_type") == "base64":
+                            mime_type = part.get("mime_type", "image/jpeg")
+                            data_url = f"data:{mime_type};base64,{part['data']}"
                             converted.append(
                                 {
                                     "type": "image_url",
-                                    "image_url": {
-                                        "url": f"data:{part.get('mime_type', 'image/jpeg')};base64,{part['data']}"
-                                    },
+                                    "image_url": {"url": data_url},
                                 }
                             )
                     else:
@@ -92,7 +92,7 @@ class OpenRouterVLM(BaseVisionLanguageModel):
 
         payload = self._build_payload(messages, stream=False, **kwargs)
 
-        logger.info(f"🔵 Calling OpenRouter API")
+        logger.info("🔵 Calling OpenRouter API")
         logger.info(f"Model: {self.model_name}")
         logger.info(
             f"Full Payload: {json.dumps(payload, indent=2, ensure_ascii=False)}"
@@ -150,7 +150,8 @@ class OpenRouterVLM(BaseVisionLanguageModel):
 
             data = response.json()
             logger.info(
-                f"OpenRouter full response: {json.dumps(data, indent=2, ensure_ascii=False)}"
+                f"OpenRouter full response: "
+                f"{json.dumps(data, indent=2, ensure_ascii=False)}"
             )
 
             # Better error handling for missing content
@@ -273,12 +274,12 @@ class OpenRouterVLM(BaseVisionLanguageModel):
                                 {"type": "image_url", "image_url": {"url": part["url"]}}
                             )
                         elif part.get("source_type") == "base64":
+                            mime_type = part.get("mime_type", "image/jpeg")
+                            data_url = f"data:{mime_type};base64,{part['data']}"
                             converted.append(
                                 {
                                     "type": "image_url",
-                                    "image_url": {
-                                        "url": f"data:{part.get('mime_type', 'image/jpeg')};base64,{part['data']}"
-                                    },
+                                    "image_url": {"url": data_url},
                                 }
                             )
                     else:

@@ -20,7 +20,7 @@ export default function NutritionAnalysisModal({
 
   const performAnalysis = React.useCallback(async () => {
     setLoading(true);
-    
+
     // Simulate API call với mock data
     setTimeout(() => {
       // Tính tổng nutrition từ các images đã chọn
@@ -53,7 +53,7 @@ export default function NutritionAnalysisModal({
       const analysisResult: NutritionAnalysisResult = {
         selectedImages: images,
         totalNutrition,
-        advice: `Based on your ${images.length} selected meal(s), you've consumed a total of ${totalNutrition.calories} calories. 
+        advice: `Based on your ${images.length} selected meal(s), you've consumed a total of ${totalNutrition.calories} calories.
 
 Your macro breakdown shows ${totalNutrition.protein}g of protein (${((totalNutrition.protein * 4 / totalNutrition.calories) * 100).toFixed(0)}%), ${totalNutrition.carbs}g of carbs (${((totalNutrition.carbs * 4 / totalNutrition.calories) * 100).toFixed(0)}%), and ${totalNutrition.fat}g of fat (${((totalNutrition.fat * 9 / totalNutrition.calories) * 100).toFixed(0)}%).
 
@@ -200,7 +200,7 @@ Recommendations:
                     {result.breakdown.map((item) => {
                       const image = images.find((img) => img.id === item.imageId);
                       if (!image) return null;
-                      
+
                       return (
                         <div key={item.imageId} className="bg-white border border-gray-200 rounded-lg p-4">
                           <div className="flex items-center gap-4">

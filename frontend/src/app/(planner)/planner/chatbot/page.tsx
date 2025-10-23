@@ -89,7 +89,7 @@ export default function ChatbotPage() {
     // Tùy backend, bạn có thể:
     // 1. Upload lên server và nhận URL
     // 2. Hoặc convert sang base64 và gửi trực tiếp
-    
+
     // Ví dụ convert sang base64:
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -129,7 +129,7 @@ const handleSendMessage = async (e: React.FormEvent) => {
 
     try {
       const userId = localStorage.getItem("userId") || "user_123";
-      
+
       // Upload ảnh nếu có
       let imageUrl = "";
       if (currentImageFile) {
@@ -171,17 +171,17 @@ const handleSendMessage = async (e: React.FormEvent) => {
           for (const line of lines) {
             if (line.startsWith("data: ")) {
               const data = line.slice(6); // Remove "data: " prefix
-              
+
               if (data === "[DONE]") {
                 continue;
               }
 
               try {
                 const parsed = JSON.parse(data);
-                
+
                 if (parsed.type === "token") {
                   accumulatedContent += parsed.content;
-                  
+
                   // Update message content
                   setMessages((prev) => {
                     const newMessages = [...prev];
@@ -216,7 +216,7 @@ const handleSendMessage = async (e: React.FormEvent) => {
       }
     } catch (error) {
       console.error("Error sending message:", error);
-      
+
       setMessages((prev) => {
         const newMessages = [...prev];
         newMessages[assistantMessageIndex] = {
@@ -424,7 +424,7 @@ const handleSendMessage = async (e: React.FormEvent) => {
               </button>
             </div>
           )}
-          
+
           <form onSubmit={handleSendMessage} className="flex gap-3">
             {/* Hidden File Input */}
             <input
@@ -434,7 +434,7 @@ const handleSendMessage = async (e: React.FormEvent) => {
               onChange={handleImageSelect}
               className="hidden"
             />
-            
+
             {/* Image Upload Button */}
             <button
               type="button"
@@ -457,7 +457,7 @@ const handleSendMessage = async (e: React.FormEvent) => {
                 />
               </svg>
             </button>
-            
+
             <input
               type="text"
               value={inputMessage}

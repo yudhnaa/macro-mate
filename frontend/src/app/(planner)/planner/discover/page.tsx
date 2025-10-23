@@ -25,7 +25,7 @@ export default function DiscoverPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFood, setSelectedFood] = useState<Food | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   const ITEMS_PER_PAGE = 20;
 
   // Fetch foods from API
@@ -33,22 +33,22 @@ export default function DiscoverPage() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const data = await getFoods({
         skip,
         limit: ITEMS_PER_PAGE,
         search: searchQuery || undefined,
       });
-      
+
       if (append) {
         setFoods(prev => [...prev, ...data]);
       } else {
         setFoods(data);
       }
-      
+
       // Check if there are more items
       setHasMore(data.length === ITEMS_PER_PAGE);
-      
+
     } catch (err) {
       const errorMessage = (err as { detail?: string })?.detail || 'Failed to load foods';
       setError(errorMessage);
@@ -233,7 +233,7 @@ export default function DiscoverPage() {
                   <h3 className="font-semibold text-gray-800 mb-2 group-hover:text-orange-600 transition-colors line-clamp-2">
                     {food.name}
                   </h3>
-                  
+
                   {/* Meal Type Tags */}
                   <div className="flex flex-wrap gap-1 mb-2">
                     {food.is_breakfast && (
@@ -267,7 +267,7 @@ export default function DiscoverPage() {
                       </span>
                     </div>
                   )}
-                  
+
                   {/* Complexity */}
                   {food.complexity && (
                     <div className="flex items-center gap-1 mt-1">

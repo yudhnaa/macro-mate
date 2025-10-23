@@ -156,8 +156,8 @@ export default function RegisterForm() {
           />
           <label htmlFor="terms" className="ml-3 text-sm" style={{ color: COLORS.text.secondary }}>
             I agree to the{" "}
-            <Link 
-              href="/terms" 
+            <Link
+              href="/terms"
               className="font-medium transition-colors"
               style={{ color: COLORS.primary.DEFAULT }}
             >

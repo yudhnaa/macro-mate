@@ -1,5 +1,4 @@
 from database.connection import Base, engine
-from database.models import UserDB
 
 
 def init_db():

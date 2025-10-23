@@ -1,4 +1,3 @@
-import hashlib
 import json
 import logging
 from functools import wraps

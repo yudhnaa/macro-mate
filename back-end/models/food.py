@@ -1,20 +1,22 @@
 from typing import List, Optional
-from pydantic import BaseModel
+
+from pydantic import BaseModel, ConfigDict
 
 
 class Direction(BaseModel):
     """Direction step schema"""
+
     id: int
     order: int
     direction: str
     food_id: int
-    
-    class Config:
-        from_attributes = True
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class FoodBase(BaseModel):
     """Base Food schema"""
+
     name: str
     raw_id: int
     is_breakfast: bool = False
@@ -31,10 +33,10 @@ class FoodBase(BaseModel):
     needs_microwave: bool = False
     needs_grill: bool = False
     complexity: Optional[int] = None
-    cook_time: Optional[int] = None
-    prep_time: Optional[int] = None
-    wait_time: Optional[int] = None
-    total_time: Optional[int] = None
+    cook_time: Optional[str] = None
+    prep_time: Optional[str] = None
+    wait_time: Optional[str] = None
+    total_time: Optional[str] = None
     grams: Optional[float] = None
     grams_per_unit: Optional[float] = None
     default_unit: Optional[str] = None
@@ -44,11 +46,13 @@ class FoodBase(BaseModel):
 
 class FoodCreate(FoodBase):
     """Schema for creating a new food"""
+
     pass
 
 
 class FoodUpdate(BaseModel):
     """Schema for updating food - all fields optional"""
+
     name: Optional[str] = None
     raw_id: Optional[int] = None
     is_breakfast: Optional[bool] = None
@@ -65,10 +69,10 @@ class FoodUpdate(BaseModel):
     needs_microwave: Optional[bool] = None
     needs_grill: Optional[bool] = None
     complexity: Optional[int] = None
-    cook_time: Optional[int] = None
-    prep_time: Optional[int] = None
-    wait_time: Optional[int] = None
-    total_time: Optional[int] = None
+    cook_time: Optional[str] = None
+    prep_time: Optional[str] = None
+    wait_time: Optional[str] = None
+    total_time: Optional[str] = None
     grams: Optional[float] = None
     grams_per_unit: Optional[float] = None
     default_unit: Optional[str] = None
@@ -78,8 +82,8 @@ class FoodUpdate(BaseModel):
 
 class Food(FoodBase):
     """Schema for Food response"""
+
     id: int
     direction: List[Direction] = []
-    
-    class Config:
-        from_attributes = True
+
+    model_config = ConfigDict(from_attributes=True)

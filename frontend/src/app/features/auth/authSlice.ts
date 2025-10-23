@@ -40,15 +40,15 @@ export const loginUser = createAsyncThunk<
     try {
       // Login and get token
       const authResponse: AuthResponse = await authApi.login(credentials);
-      
+
       // Store token
       if (typeof window !== 'undefined') {
         localStorage.setItem('token', authResponse.access_token);
       }
-      
+
       // Get user info
       const user = await authApi.getCurrentUser();
-      
+
       return {
         user,
         token: authResponse.access_token,

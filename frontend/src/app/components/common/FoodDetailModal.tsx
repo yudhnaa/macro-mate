@@ -16,7 +16,7 @@ const getMockNutrition = (food: Food) => {
   const protein = Math.round((baseCalories * 0.25) / 4);
   const carbs = Math.round((baseCalories * 0.45) / 4);
   const fat = Math.round((baseCalories * 0.30) / 9);
-  
+
   return {
     servingSize: food.grams || 50,
     calories: baseCalories,
@@ -67,7 +67,7 @@ export default function FoodDetailModal({ food, isOpen, onClose }: FoodDetailMod
           }
           setChartAnimation(prev => ({ ...prev, carbs: carbsProgress }));
         }, 20);
-      }, 900); 
+      }, 900);
 
       setTimeout(() => {
         let proteinProgress = 0;

@@ -1,16 +1,9 @@
-import json
-import uuid
-from typing import Optional
-
 from dependencies import get_workflow_service
-from fastapi import APIRouter, Depends, Header, HTTPException, File, UploadFile, Form
-from fastapi.params import Depends
-from fastapi.responses import StreamingResponse, JSONResponse
-from langchain_community.callbacks.llmonitor_callback import user_props_ctx
+from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-from services.user_service import UserProfileService
 from services.cloudinary_service import CloudinaryService, get_cloudinary_service
-from services.workflow_service import WorkflowService, get_profile_service
+from services.workflow_service import WorkflowService
 from utils.logger import setup_logger
 
 logger = setup_logger(__name__)
@@ -19,7 +12,8 @@ router = APIRouter(prefix="/analyze", tags=["analyze"])
 
 
 class ImageAnalysRequest(BaseModel):
-    image_url: str = Field(..., description = "URL hình ảnh cần phân tích")
+    image_url: str = Field(..., description="URL hình ảnh cần phân tích")
+
 
 @router.post("/analyze-image")
 async def analyze_image(
@@ -28,29 +22,27 @@ async def analyze_image(
 ):
     try:
         result = await service.analyze_image(request.image_url)
-        
+
         # Convert pydantic model sang dict
-        result_dict =  result.model_dump() if hasattr(result, "model_dump") else result.dict()
-        return JSONResponse(
-            content = result_dict,
-            status_code = 200
+        result_dict = (
+            result.model_dump() if hasattr(result, "model_dump") else result.dict()
         )
+        return JSONResponse(content=result_dict, status_code=200)
     except Exception as e:
         logger.error(f"Failed to analyze image {request.image_url}: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Image analysis failed: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Image analysis failed: {str(e)}")
+
 
 @router.post("/upload-and-analyze-image")
 async def upload_and_analyze_image(
-    file: UploadFile = File(..., description = "Ảnh món ăn cần phân tích"),
+    file: UploadFile = File(..., description="Ảnh món ăn cần phân tích"),
     user_id: str = Header(None, alias="X-User-ID"),
     cloudinary_service: CloudinaryService = Depends(get_cloudinary_service),
-    workflow_service: WorkflowService = Depends(get_workflow_service)
+    workflow_service: WorkflowService = Depends(get_workflow_service),
 ):
     """
     Upload ảnh lên Cloudinary và phân tích ngay
-    
+
     Workflow:
     1. Upload ảnh lên Cloudinary
     2. Nhận URL
@@ -70,12 +62,16 @@ async def upload_and_analyze_image(
         image_url = upload_result.get("secure_url")
         if not image_url:
             raise HTTPException(status_code=500, detail="Image upload failed")
-        
+
         logger.info(f"Image uploaded successfully: {image_url}")
 
         # Phân tích ảnh
         analysis_result = await workflow_service.analyze_image(image_url)
-        analysis_dict = analysis_result.model_dump() if hasattr(analysis_result, "model_dump") else analysis_result.dict()
+        analysis_dict = (
+            analysis_result.model_dump()
+            if hasattr(analysis_result, "model_dump")
+            else analysis_result.dict()
+        )
 
         response = {
             "upload": {
@@ -87,12 +83,10 @@ async def upload_and_analyze_image(
                 "format": upload_result["format"],
                 "size": upload_result["size"],
             },
-            "analysis": analysis_dict
+            "analysis": analysis_dict,
         }
 
         return JSONResponse(content=response, status_code=200)
     except Exception as e:
         logger.error(f"Failed to analyze image {image_url}: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Image analysis failed: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Image analysis failed: {str(e)}")
