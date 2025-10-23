@@ -20,6 +20,10 @@ export default function ChatbotPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    localStorage.removeItem("chatbot_thread_id");
+  }, []);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -89,7 +93,7 @@ export default function ChatbotPage() {
     // Tùy backend, bạn có thể:
     // 1. Upload lên server và nhận URL
     // 2. Hoặc convert sang base64 và gửi trực tiếp
-    
+
     // Ví dụ convert sang base64:
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -100,7 +104,7 @@ export default function ChatbotPage() {
     });
   };
 
-const handleSendMessage = async (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputMessage.trim() && !imageFile) return;
 
@@ -128,8 +132,6 @@ const handleSendMessage = async (e: React.FormEvent) => {
     ]);
 
     try {
-      const userId = localStorage.getItem("userId") || "user_123";
-      
       // Upload ảnh nếu có
       let imageUrl = "";
       if (currentImageFile) {
@@ -138,14 +140,18 @@ const handleSendMessage = async (e: React.FormEvent) => {
         handleRemoveImage();
       }
 
+      const accessToken = localStorage.getItem("token");
+      // Lấy thread_id từ localStorage (nếu có)
+      const threadId = localStorage.getItem("chatbot_thread_id") || "";
+
       const response = await fetch("http://127.0.0.1:8000/advice/stream", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-User-ID": userId,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          thread_id: "",
+          thread_id: threadId,
           image_url: imageUrl,
           user_query: currentQuery,
         }),
@@ -169,19 +175,27 @@ const handleSendMessage = async (e: React.FormEvent) => {
           const lines = chunk.split("\n");
 
           for (const line of lines) {
+            // Kiểm tra thread_id ở dòng đầu tiên
+            if (line.startsWith("thread_id:")) {
+              const newThreadId = line.replace("thread_id:", "").trim();
+              localStorage.setItem("chatbot_thread_id", newThreadId);
+              console.log("Thread ID saved:", newThreadId);
+              continue;
+            }
+
             if (line.startsWith("data: ")) {
               const data = line.slice(6); // Remove "data: " prefix
-              
+
               if (data === "[DONE]") {
                 continue;
               }
 
               try {
                 const parsed = JSON.parse(data);
-                
+
                 if (parsed.type === "token") {
                   accumulatedContent += parsed.content;
-                  
+
                   // Update message content
                   setMessages((prev) => {
                     const newMessages = [...prev];
@@ -209,14 +223,15 @@ const handleSendMessage = async (e: React.FormEvent) => {
           const newMessages = [...prev];
           newMessages[assistantMessageIndex] = {
             ...newMessages[assistantMessageIndex],
-            content: "I apologize, but I couldn't generate a response. Please try again.",
+            content:
+              "I apologize, but I couldn't generate a response. Please try again.",
           };
           return newMessages;
         });
       }
     } catch (error) {
       console.error("Error sending message:", error);
-      
+
       setMessages((prev) => {
         const newMessages = [...prev];
         newMessages[assistantMessageIndex] = {
@@ -314,17 +329,17 @@ const handleSendMessage = async (e: React.FormEvent) => {
                   }`}
                 >
                   <div className="text-sm leading-relaxed whitespace-pre-wrap">
-                    {message.role === "assistant" ? (
-                      parseMarkdown(message.content).map((part, idx) => (
-                        part.type === "bold" ? (
-                          <strong key={idx} className="font-bold">{part.content}</strong>
-                        ) : (
-                          <span key={idx}>{part.content}</span>
+                    {message.role === "assistant"
+                      ? parseMarkdown(message.content).map((part, idx) =>
+                          part.type === "bold" ? (
+                            <strong key={idx} className="font-bold">
+                              {part.content}
+                            </strong>
+                          ) : (
+                            <span key={idx}>{part.content}</span>
+                          )
                         )
-                      ))
-                    ) : (
-                      message.content
-                    )}
+                      : message.content}
                   </div>
                   <p
                     className={`text-xs mt-2 ${
@@ -424,7 +439,7 @@ const handleSendMessage = async (e: React.FormEvent) => {
               </button>
             </div>
           )}
-          
+
           <form onSubmit={handleSendMessage} className="flex gap-3">
             {/* Hidden File Input */}
             <input
@@ -434,7 +449,7 @@ const handleSendMessage = async (e: React.FormEvent) => {
               onChange={handleImageSelect}
               className="hidden"
             />
-            
+
             {/* Image Upload Button */}
             <button
               type="button"
@@ -457,7 +472,7 @@ const handleSendMessage = async (e: React.FormEvent) => {
                 />
               </svg>
             </button>
-            
+
             <input
               type="text"
               value={inputMessage}
