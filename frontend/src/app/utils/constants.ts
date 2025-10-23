@@ -5,7 +5,7 @@ export const COLORS = {
     light: '#FB923C',
     dark: '#C2410C',
   },
-  
+
   // Indigo Colors (existing colors in your app)
   indigo: {
     DEFAULT: '#4F46E5',

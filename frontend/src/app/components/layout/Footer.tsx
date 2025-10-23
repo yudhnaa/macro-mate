@@ -135,7 +135,7 @@ export default function Footer() {
           <p className="text-sm" style={{ color: COLORS.text.secondary }}>
             © {currentYear} Macro Mate. All rights reserved.
           </p>
-          
+
           {/* Social Links */}
           <div className="flex items-center gap-4">
             <span className="text-sm" style={{ color: COLORS.text.secondary }}>Follow us:</span>
@@ -152,9 +152,9 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-9 h-9 flex items-center justify-center rounded-full transition-all hover:scale-110"
-                  style={{ 
+                  style={{
                     backgroundColor: COLORS.background.gray,
-                    color: COLORS.text.secondary 
+                    color: COLORS.text.secondary
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = COLORS.primary.DEFAULT;

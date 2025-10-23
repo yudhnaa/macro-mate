@@ -1,20 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import NProgress from "nprogress";
 import { COLORS } from "@/app/utils/constants";
 import Logo from "../icon/Logo";
+import ProfileIcon from "../icon/ProfileIcon";
+import { useAppSelector } from "@/app/store/hooks";
+import { useClickOutside } from "@/app/hooks/useClickOutside";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+
+  // Close dropdown when clicking outside
+  useClickOutside(profileMenuRef, () => setIsProfileMenuOpen(false));
 
   const handleNavigation = (path: string) => {
     NProgress.start();
     router.push(path);
     setIsMobileMenuOpen(false);
+    setIsProfileMenuOpen(false);
   };
 
   return (
@@ -74,37 +84,103 @@ export default function Header() {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden lg:flex items-center gap-3">
-            <button
-              onClick={() => handleNavigation("/login")}
-              className="px-5 py-2 text-sm font-medium rounded-lg transition-all"
-              style={{
-                color: COLORS.text.primary,
-                border: `1px solid ${COLORS.border.DEFAULT}`,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = COLORS.background.gray;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              Log In
-            </button>
-            <button
-              onClick={() => handleNavigation("/register")}
-              className="px-5 py-2 text-white text-sm font-medium rounded-lg shadow-lg transition-all transform hover:scale-105"
-              style={{
-                backgroundColor: COLORS.primary.DEFAULT,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = COLORS.primary.dark;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = COLORS.primary.DEFAULT;
-              }}
-            >
-              Sign Up Free
-            </button>
+            {isAuthenticated ? (
+              /* Authenticated User Menu */
+              <div className="relative" ref={profileMenuRef}>
+                <button
+                  onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:bg-gray-100"
+                  style={{ color: COLORS.text.primary }}
+                >
+                  <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-white text-sm font-semibold">
+                    {user?.username?.substring(0, 2).toUpperCase() || user?.email?.substring(0, 2).toUpperCase() || "U"}
+                  </div>
+                  <span className="text-sm font-medium">
+                    {user?.username || user?.email?.split('@')[0]}
+                  </span>
+                  <svg
+                    className={`w-4 h-4 transition-transform ${isProfileMenuOpen ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+
+                {/* Dropdown Menu */}
+                {isProfileMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-56 rounded-lg shadow-lg bg-white border border-gray-200 py-2 z-50 animate-fadeIn">
+                    <button
+                      onClick={() => handleNavigation("/planner/profile")}
+                      className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full"
+                    >
+                      <ProfileIcon width={18} height={18} />
+                      Profile
+                    </button>
+                    <button
+                      onClick={() => handleNavigation("/planner")}
+                      className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                      Planner
+                    </button>
+                    <div className="border-t border-gray-200 my-2"></div>
+                    <button
+                      onClick={() => handleNavigation("/logout")}
+                      className="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      Log Out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Not Authenticated - Login/Signup Buttons */
+              <>
+                <button
+                  onClick={() => handleNavigation("/login")}
+                  className="px-5 py-2 text-sm font-medium rounded-lg transition-all"
+                  style={{
+                    color: COLORS.text.primary,
+                    border: `1px solid ${COLORS.border.DEFAULT}`,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = COLORS.background.gray;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                >
+                  Log In
+                </button>
+                <button
+                  onClick={() => handleNavigation("/register")}
+                  className="px-5 py-2 text-white text-sm font-medium rounded-lg shadow-lg transition-all transform hover:scale-105"
+                  style={{
+                    backgroundColor: COLORS.primary.DEFAULT,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = COLORS.primary.dark;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = COLORS.primary.DEFAULT;
+                  }}
+                >
+                  Sign Up Free
+                </button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -153,27 +229,51 @@ export default function Header() {
               >
                 Planner
               </button>
-              <div className="flex flex-col gap-2 mt-2">
-                <button
-                  onClick={() => handleNavigation("/login")}
-                  className="w-full px-5 py-2.5 text-sm font-medium rounded-lg transition-all"
-                  style={{
-                    color: COLORS.text.primary,
-                    border: `1px solid ${COLORS.border.DEFAULT}`,
-                  }}
-                >
-                  Log In
-                </button>
-                <button
-                  onClick={() => handleNavigation("/register")}
-                  className="w-full px-5 py-2.5 text-white text-sm font-medium rounded-lg shadow-lg"
-                  style={{
-                    backgroundColor: COLORS.primary.DEFAULT,
-                  }}
-                >
-                  Sign Up Free
-                </button>
-              </div>
+
+              {/* Mobile Auth Buttons */}
+              {isAuthenticated ? (
+                <div className="flex flex-col gap-2 mt-2 border-t pt-4">
+                  <button
+                    onClick={() => handleNavigation("/planner/profile")}
+                    className="w-full px-5 py-2.5 text-sm font-medium rounded-lg transition-all text-left flex items-center gap-2"
+                    style={{
+                      color: COLORS.text.primary,
+                      border: `1px solid ${COLORS.border.DEFAULT}`,
+                    }}
+                  >
+                    <ProfileIcon width={16} height={16} />
+                    Profile
+                  </button>
+                  <button
+                    onClick={() => handleNavigation("/logout")}
+                    className="w-full px-5 py-2.5 text-sm font-medium rounded-lg transition-all text-left text-red-600 border border-red-200"
+                  >
+                    Log Out
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2 mt-2">
+                  <button
+                    onClick={() => handleNavigation("/login")}
+                    className="w-full px-5 py-2.5 text-sm font-medium rounded-lg transition-all"
+                    style={{
+                      color: COLORS.text.primary,
+                      border: `1px solid ${COLORS.border.DEFAULT}`,
+                    }}
+                  >
+                    Log In
+                  </button>
+                  <button
+                    onClick={() => handleNavigation("/register")}
+                    className="w-full px-5 py-2.5 text-white text-sm font-medium rounded-lg shadow-lg"
+                    style={{
+                      backgroundColor: COLORS.primary.DEFAULT,
+                    }}
+                  >
+                    Sign Up Free
+                  </button>
+                </div>
+              )}
             </nav>
           </div>
         )}

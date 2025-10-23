@@ -1,10 +1,17 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function ChatbotPage() {
   const [messages, setMessages] = useState<
-    Array<{ role: "user" | "assistant"; content: string; timestamp: Date }>
+    Array<{ 
+      role: "user" | "assistant"; 
+      content: string; 
+      timestamp: Date;
+      imageUrl?: string; 
+    }>
   >([
     {
       role: "assistant",
@@ -15,7 +22,14 @@ export default function ChatbotPage() {
   ]);
   const [inputMessage, setInputMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    localStorage.removeItem("chatbot_thread_id");
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -25,33 +39,170 @@ export default function ChatbotPage() {
     scrollToBottom();
   }, [messages]);
 
+  // Xử lý chọn ảnh
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Xóa ảnh đã chọn
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    setImageFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputMessage.trim()) return;
+    if (!inputMessage.trim() && !imageFile) return;
 
     const userMessage = {
       role: "user" as const,
       content: inputMessage,
       timestamp: new Date(),
+      imageUrl: selectedImage || undefined, // Thêm ảnh vào message
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const currentQuery = inputMessage;
+    const currentImageFile = imageFile;
     setInputMessage("");
     setIsTyping(true);
 
-    // Simulate bot response
-    setTimeout(() => {
-      const botMessage = {
+    // Tạo message rỗng cho assistant để stream vào
+    const assistantMessageIndex = messages.length + 1;
+    setMessages((prev) => [
+      ...prev,
+      {
         role: "assistant" as const,
-        content:
-          "I understand you're asking about " +
-          inputMessage +
-          ". Let me help you with that. This is a demo response. In production, this would connect to an AI service.",
+        content: "",
         timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, botMessage]);
+      },
+    ]);
+
+    try {
+      const accessToken = localStorage.getItem("token");
+      // Lấy thread_id từ localStorage (nếu có)
+      const threadId = localStorage.getItem("chatbot_thread_id") || "";
+
+      // Tạo FormData để upload file theo đúng API
+      const formData = new FormData();
+      formData.append("thread_id", threadId);
+      formData.append("user_query", currentQuery);
+      
+      if (currentImageFile) {
+        formData.append("img_file", currentImageFile);
+      }
+
+      const response = await fetch("http://127.0.0.1:8000/advice/stream", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          // Không set Content-Type, để browser tự động set với boundary
+        },
+        body: formData,
+      });
+
+      // Reset image sau khi gửi
+      if (currentImageFile) {
+        handleRemoveImage();
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch response");
+      }
+
+      // Đọc stream
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedContent = "";
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split("\n");
+
+          for (const line of lines) {
+            // Kiểm tra thread_id ở dòng đầu tiên
+            if (line.startsWith("thread_id:")) {
+              const newThreadId = line.replace("thread_id:", "").trim();
+              localStorage.setItem("chatbot_thread_id", newThreadId);
+              console.log("Thread ID saved:", newThreadId);
+              continue;
+            }
+
+            if (line.startsWith("data: ")) {
+              const data = line.slice(6); // Remove "data: " prefix
+
+              if (data === "[DONE]") {
+                continue;
+              }
+
+              try {
+                const parsed = JSON.parse(data);
+
+                if (parsed.type === "token") {
+                  accumulatedContent += parsed.content;
+
+                  // Update message content
+                  setMessages((prev) => {
+                    const newMessages = [...prev];
+                    newMessages[assistantMessageIndex] = {
+                      ...newMessages[assistantMessageIndex],
+                      content: accumulatedContent,
+                    };
+                    return newMessages;
+                  });
+                } else if (parsed.type === "progress") {
+                  console.log("Progress:", parsed.message);
+                } else if (parsed.type === "complete") {
+                  console.log("Stream complete");
+                }
+              } catch {
+                // Ignore JSON parse errors for non-JSON lines
+              }
+            }
+          }
+        }
+      }
+
+      if (!accumulatedContent) {
+        setMessages((prev) => {
+          const newMessages = [...prev];
+          newMessages[assistantMessageIndex] = {
+            ...newMessages[assistantMessageIndex],
+            content:
+              "I apologize, but I couldn't generate a response. Please try again.",
+          };
+          return newMessages;
+        });
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+
+      setMessages((prev) => {
+        const newMessages = [...prev];
+        newMessages[assistantMessageIndex] = {
+          ...newMessages[assistantMessageIndex],
+          content: "Sorry, I encountered an error. Please try again later.",
+        };
+        return newMessages;
+      });
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const quickActions = [
@@ -61,17 +212,58 @@ export default function ChatbotPage() {
     "Track today's calories",
   ];
 
+  // Hàm để bắt đầu chat mới
+  const handleNewChat = () => {
+    setMessages([
+      {
+        role: "assistant",
+        content:
+          "Hello! I'm your Macro Mate assistant. How can I help you with your nutrition and meal planning today?",
+        timestamp: new Date(),
+      },
+    ]);
+    setInputMessage("");
+    setSelectedImage(null);
+    setImageFile(null);
+    localStorage.removeItem("chatbot_thread_id");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold text-gray-800">
-            Macro Mate Assistant
-          </h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Your personal nutrition and meal planning assistant
-          </p>
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800">
+              Macro Mate Assistant
+            </h1>
+            <p className="text-sm text-gray-600 mt-1">
+              Your personal nutrition and meal planning assistant
+            </p>
+          </div>
+          <button
+            onClick={handleNewChat}
+            className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2"
+            title="Start a new chat"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            <span>New Chat</span>
+          </button>
         </div>
       </div>
 
@@ -137,7 +329,67 @@ export default function ChatbotPage() {
                       : "bg-white border border-gray-200 text-gray-800"
                   }`}
                 >
-                  <p className="text-sm leading-relaxed">{message.content}</p>
+                  {/* Hiển thị ảnh nếu có */}
+                  {message.imageUrl && (
+                    <div className="mb-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={message.imageUrl}
+                        alt="Uploaded"
+                        className="max-w-full max-h-64 rounded-lg"
+                      />
+                    </div>
+                  )}
+                  
+                  <div className="text-sm leading-relaxed markdown-content">
+                    {message.role === "assistant" ? (
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          h2: ({ children }) => (
+                            <h2 className="text-base font-bold mb-2 mt-3 text-gray-800">
+                              {children}
+                            </h2>
+                          ),
+                          h3: ({ children }) => (
+                            <h3 className="text-sm font-semibold mb-1 mt-2 text-gray-700">
+                              {children}
+                            </h3>
+                          ),
+                          p: ({ children }) => (
+                            <p className="my-1 text-gray-700">{children}</p>
+                          ),
+                          ul: ({ children }) => (
+                            <ul className="my-1 ml-4 list-disc space-y-0.5">
+                              {children}
+                            </ul>
+                          ),
+                          ol: ({ children }) => (
+                            <ol className="my-1 ml-4 list-decimal space-y-0.5">
+                              {children}
+                            </ol>
+                          ),
+                          li: ({ children }) => (
+                            <li className="text-gray-700">{children}</li>
+                          ),
+                          strong: ({ children }) => (
+                            <strong className="font-semibold text-gray-900">
+                              {children}
+                            </strong>
+                          ),
+                          code: ({ children }) => (
+                            <code className="bg-gray-100 px-1 py-0.5 rounded text-xs">
+                              {children}
+                            </code>
+                          ),
+                        }}
+                      >
+                        {message.content}
+                      </ReactMarkdown>
+                    ) : (
+                      <div className="whitespace-pre-wrap">{message.content}</div>
+                    )}
+                  </div>
                   <p
                     className={`text-xs mt-2 ${
                       message.role === "user"
@@ -218,7 +470,58 @@ export default function ChatbotPage() {
       {/* Input Area */}
       <div className="bg-white border-t border-gray-200 px-6 py-4">
         <div className="max-w-4xl mx-auto">
+          {/* Image Preview */}
+          {selectedImage && (
+            <div className="mb-3 relative inline-block">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={selectedImage}
+                alt="Selected"
+                className="max-h-32 rounded-lg border border-gray-300"
+              />
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+              >
+                ×
+              </button>
+            </div>
+          )}
+
           <form onSubmit={handleSendMessage} className="flex gap-3">
+            {/* Hidden File Input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageSelect}
+              className="hidden"
+            />
+
+            {/* Image Upload Button */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isTyping}
+              className="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+              title="Upload image"
+            >
+              <svg
+                className="w-5 h-5 text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+            </button>
+
             <input
               type="text"
               value={inputMessage}
@@ -229,7 +532,7 @@ export default function ChatbotPage() {
             />
             <button
               type="submit"
-              disabled={isTyping || !inputMessage.trim()}
+              disabled={isTyping || (!inputMessage.trim() && !imageFile)}
               className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
             >
               <span>Send</span>

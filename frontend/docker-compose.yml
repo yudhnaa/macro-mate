@@ -1,0 +1,21 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: macro-mate-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_TELEMETRY_DISABLED=1
+      - NODE_ENV=production
+      # - NEXT_PUBLIC_API_URL=http://backend:8000
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - macro-mate-network
+
+networks:
+  macro-mate-network:
+    driver: bridge

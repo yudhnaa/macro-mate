@@ -1,29 +1,63 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import NxInput from "@/app/components/common/NxInput";
 import { COLORS } from "@/app/utils/constants";
 import LoadingSpinner from "./LoadingSpinner";
 import GoogleIcon from "../icon/GoogleIcon";
 import GithubIcon from "../icon/GithubIcon";
+import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
+import { loginUser, clearError } from "@/app/features/auth/authSlice";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
+
+  useEffect(() => {
+    // Clear error when component unmounts
+    return () => {
+      dispatch(clearError());
+    };
+  }, [dispatch]);
+
+  useEffect(() => {
+    // Redirect to planner if already authenticated
+    if (isAuthenticated) {
+      router.push("/planner");
+    }
+  }, [isAuthenticated, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+
+    try {
+      await dispatch(loginUser({ email, password })).unwrap();
+      // Success - will redirect via useEffect
+    } catch (err) {
+      // Error is handled by Redux slice
+      console.error("Login failed:", err);
+    }
   };
 
   return (
     <div className="w-full max-w-md rounded-2xl  p-8 space-y-6">
+      {/* Back button */}
+      <div className="flex items-center justify-end">
+        <button
+          type="button"
+          onClick={() => router.push('/')}
+          className="text-sm font-medium transition-colors hover:underline"
+          style={{ color: COLORS.primary.DEFAULT }}
+        >
+          ← Back
+        </button>
+      </div>
+
       {/* Header */}
       <div className="text-center">
         <h1 className="text-3xl font-bold mb-2" style={{ color: COLORS.text.primary }}>
@@ -33,6 +67,13 @@ export default function LoginForm() {
           Sign in to continue to Macro Mate
         </p>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="p-3 rounded-lg bg-red-50 border border-red-200">
+          <p className="text-sm text-red-600">{error}</p>
+        </div>
+      )}
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -110,9 +151,9 @@ export default function LoginForm() {
           <button
             type="button"
             className="w-full flex items-center justify-center gap-3 px-4 py-3 border rounded-lg hover:bg-gray-50 transition-colors font-medium"
-            style={{ 
+            style={{
               borderColor: COLORS.border.DEFAULT,
-              color: COLORS.text.primary 
+              color: COLORS.text.primary
             }}
           >
             <GoogleIcon width={20} height={20} />
@@ -122,9 +163,9 @@ export default function LoginForm() {
           <button
             type="button"
             className="w-full flex items-center justify-center gap-3 px-4 py-3 border rounded-lg hover:bg-gray-50 transition-colors font-medium"
-            style={{ 
+            style={{
               borderColor: COLORS.border.DEFAULT,
-              color: COLORS.text.primary 
+              color: COLORS.text.primary
             }}
           >
             <GithubIcon width={20} height={20} />

@@ -1,24 +1,43 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import NxInput from "@/app/components/common/NxInput";
 import { COLORS } from "@/app/utils/constants";
 import LoadingSpinner from "./LoadingSpinner";
+import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
+import { registerUser, loginUser, clearError } from "@/app/features/auth/authSlice";
 
 export default function RegisterForm() {
   const [formData, setFormData] = useState({
-    name: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
-  const [isLoading, setIsLoading] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const [error, setError] = useState("");
+  const [localError, setLocalError] = useState("");
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
+
+  useEffect(() => {
+    // Clear error when component unmounts
+    return () => {
+      dispatch(clearError());
+    };
+  }, [dispatch]);
+
+  useEffect(() => {
+    // Redirect to planner if already authenticated
+    if (isAuthenticated) {
+      router.push("/planner");
+    }
+  }, [isAuthenticated, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setError("");
+    setLocalError("");
+    dispatch(clearError());
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -27,29 +46,61 @@ export default function RegisterForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setLocalError("");
+    dispatch(clearError());
 
+    // Client-side validation
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match!");
+      setLocalError("Passwords do not match!");
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      setLocalError("Password must be at least 8 characters long!");
       return;
     }
 
     if (!acceptTerms) {
-      setError("Please agree to the terms of service!");
+      setLocalError("Please agree to the terms of service!");
       return;
     }
 
-    setIsLoading(true);
+    try {
+      // Register user
+      await dispatch(registerUser({
+        email: formData.email,
+        password: formData.password,
+      })).unwrap();
 
-    console.log("Registering with:", formData);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+      // After successful registration, automatically login
+      await dispatch(loginUser({
+        email: formData.email,
+        password: formData.password,
+      })).unwrap();
 
-    setIsLoading(false);
-    console.log("Registration successful!");
+      // Success - will redirect via useEffect
+    } catch (err) {
+      // Error is handled by Redux slice
+      console.error("Registration failed:", err);
+    }
   };
+
+  const displayError = localError || error;
 
   return (
     <div className="w-full max-w-md  rounded-2xl p-8 space-y-6">
+      {/* Back button */}
+      <div className="flex items-center justify-end">
+        <button
+          type="button"
+          onClick={() => router.push('/')}
+          className="text-sm font-medium transition-colors hover:underline"
+          style={{ color: COLORS.primary.DEFAULT }}
+        >
+          ← Back
+        </button>
+      </div>
+
       {/* Header */}
       <div className="text-center">
         <h1 className="text-3xl font-bold mb-2" style={{ color: COLORS.text.primary }}>
@@ -70,14 +121,6 @@ export default function RegisterForm() {
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-5">
         <NxInput
-          id="name"
-          name="name"
-          label="Username"
-          value={formData.name}
-          onChange={handleChange}
-          required
-        />
-        <NxInput
           id="email"
           name="email"
           label="Email"
@@ -85,6 +128,7 @@ export default function RegisterForm() {
           value={formData.email}
           onChange={handleChange}
           required
+          placeholder="your.email@example.com"
         />
         <NxInput
           id="password"
@@ -95,6 +139,7 @@ export default function RegisterForm() {
           onChange={handleChange}
           required
           minLength={8}
+          placeholder="••••••••"
         />
         <NxInput
           id="confirmPassword"
@@ -104,6 +149,7 @@ export default function RegisterForm() {
           value={formData.confirmPassword}
           onChange={handleChange}
           required
+          placeholder="••••••••"
         />
 
         {/* Terms and Conditions */}
@@ -113,7 +159,8 @@ export default function RegisterForm() {
             type="checkbox"
             checked={acceptTerms}
             onChange={(e) => {
-              setError("");
+              setLocalError("");
+              dispatch(clearError());
               setAcceptTerms(e.target.checked);
             }}
             className="mt-1 h-4 w-4 border-gray-300 rounded cursor-pointer"
@@ -121,8 +168,8 @@ export default function RegisterForm() {
           />
           <label htmlFor="terms" className="ml-3 text-sm" style={{ color: COLORS.text.secondary }}>
             I agree to the{" "}
-            <Link 
-              href="/terms" 
+            <Link
+              href="/terms"
               className="font-medium transition-colors"
               style={{ color: COLORS.primary.DEFAULT }}
             >
@@ -132,7 +179,7 @@ export default function RegisterForm() {
         </div>
 
         {/* Error Message */}
-        {error && (
+        {displayError && (
           <div
             className="border px-4 py-3 rounded-lg text-sm"
             style={{
@@ -142,7 +189,7 @@ export default function RegisterForm() {
             }}
             role="alert"
           >
-            <p>{error}</p>
+            <p>{displayError}</p>
           </div>
         )}
 
