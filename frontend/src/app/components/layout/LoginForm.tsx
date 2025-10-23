@@ -46,6 +46,18 @@ export default function LoginForm() {
 
   return (
     <div className="w-full max-w-md rounded-2xl  p-8 space-y-6">
+      {/* Back button */}
+      <div className="flex items-center justify-end">
+        <button
+          type="button"
+          onClick={() => router.push('/')}
+          className="text-sm font-medium transition-colors hover:underline"
+          style={{ color: COLORS.primary.DEFAULT }}
+        >
+          ← Back
+        </button>
+      </div>
+
       {/* Header */}
       <div className="text-center">
         <h1 className="text-3xl font-bold mb-2" style={{ color: COLORS.text.primary }}>
