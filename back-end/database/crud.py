@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Dict, List, Optional
 
 from database.models import (
@@ -193,6 +194,7 @@ def create_user_meal(
     image_url: str,
     meal_type: MealTypeDB = MealTypeDB.SNACK,
     meal_name: Optional[str] = None,
+    meal_time: Optional[datetime] = None,
 ) -> UserMealDB:
     """
     Create a new user meal record
@@ -203,11 +205,14 @@ def create_user_meal(
         image_url: URL of the uploaded image
         meal_type: Type of meal (breakfast, lunch, dinner, snack)
         meal_name: Optional name of the meal
+        meal_time: Optional datetime of the meal;\
+            defaults to current time if not provided
     """
     db_meal = UserMealDB(
         user_id=user_id,
         image_url=image_url,
         meal_type=meal_type,
+        meal_time=meal_time,
         meal_name=meal_name,
         analysis_status=AnalysisStatusDB.PENDING,
     )
@@ -359,3 +364,38 @@ def mark_meal_failed(
     db.commit()
     db.refresh(meal)
     return meal
+
+
+def get_user_meals_by_date_range(
+    db: Session,
+    user_id: int,
+    start_date: datetime,
+    end_date: datetime,
+    meal_type: Optional[MealTypeDB] = None,
+) -> List[UserMealDB]:
+    """
+    Get user meals within a date range
+
+    Args:
+        db: Database session
+        user_id: User ID
+        start_date: Start date (inclusive)
+        end_date: End date (inclusive)
+        meal_type: Optional filter by meal type
+
+    Returns:
+        List of UserMealDB objects with their items loaded
+    """
+    query = (
+        db.query(UserMealDB)
+        .options(joinedload(UserMealDB.items))
+        .filter(UserMealDB.user_id == user_id)
+        .filter(UserMealDB.meal_time >= start_date)
+        .filter(UserMealDB.meal_time <= end_date)
+        .filter(UserMealDB.analysis_status == AnalysisStatusDB.SUCCESS)
+    )
+
+    if meal_type:
+        query = query.filter(UserMealDB.meal_type == meal_type)
+
+    return query.order_by(UserMealDB.meal_time.asc()).all()

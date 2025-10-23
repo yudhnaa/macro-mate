@@ -1,15 +1,19 @@
+from datetime import datetime, time
+from typing import Optional
+
 from database.connection import get_db
 from database.crud import (
     create_user_meal,
     get_user_by_id,
     get_user_meal_by_id,
     get_user_meals,
+    get_user_meals_by_date_range,
     mark_meal_failed,
     update_meal_analysis,
 )
 from database.models import MealTypeDB
 from dependencies import get_workflow_service
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import JSONResponse
 from models.factory import ModelFactory
 from pydantic import BaseModel, Field
@@ -48,7 +52,10 @@ async def analyze_image(
 @router.post("/upload-and-analyze-image")
 async def upload_and_analyze_image(
     file: UploadFile = File(..., description="Ảnh món ăn cần phân tích"),
-    meal_type: str = "snack",
+    meal_type: str = Form(
+        "snack", description="Loại bữa ăn (breakfast, lunch, dinner, snack)"
+    ),
+    meal_time: Optional[str] = Form(None, description="Thời gian bữa ăn (ISO format)"),
     cloudinary_service: CloudinaryService = Depends(get_cloudinary_service),
     workflow_service: WorkflowService = Depends(get_workflow_service),
     db: Session = Depends(get_db),
@@ -67,6 +74,8 @@ async def upload_and_analyze_image(
     Form Parameters:
     - file: Ảnh món ăn (required)
     - meal_type: Loại bữa ăn (breakfast, lunch, dinner, snack) - default: snack
+    - meal_time: Thời gian bữa ăn (ISO format, e.g., 2025-01-01T12:30:00) \
+        - optional, defaults to current time
 
     TODO: Implement JWT authentication to get user_id
     """
@@ -96,6 +105,19 @@ async def upload_and_analyze_image(
                     {', '.join([e.value for e in MealTypeDB])}",
             )
 
+        # Parse meal_time if provided, otherwise use current time
+        if meal_time:
+            try:
+                meal_time_dt = datetime.fromisoformat(meal_time.replace("Z", "+00:00"))
+            except ValueError:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid meal_time format. \
+                        Use ISO format (e.g., 2025-01-01T12:30:00)",
+                )
+        else:
+            meal_time_dt = datetime.now()
+
         logger.info(f"Uploading image for user {user_id}")
 
         # Upload ảnh lên Cloudinary
@@ -117,6 +139,7 @@ async def upload_and_analyze_image(
             user_id=user_id_int,
             image_url=image_url,
             meal_type=meal_type_enum,
+            meal_time=meal_time_dt,
         )
         meal_id = meal.id
 
@@ -349,4 +372,317 @@ async def get_meal_history(
         logger.error(f"Failed to get meal history: {e}")
         raise HTTPException(
             status_code=500, detail=f"Failed to get meal history: {str(e)}"
+        )
+
+
+@router.get("/nutrition-stats")
+async def get_nutrition_statistics(
+    start_date: str = Query(
+        ..., description="Start date in YYYY-MM-DD format (e.g., 2025-01-01)"
+    ),
+    end_date: str = Query(
+        ..., description="End date in YYYY-MM-DD format (e.g., 2025-01-31)"
+    ),
+    meal_type: str = Query(
+        None, description="Filter by meal type (breakfast, lunch, dinner, snack)"
+    ),
+    db: Session = Depends(get_db),
+):
+    """
+    Thống kê dinh dưỡng của người dùng trong khoảng thời gian
+
+    Query Parameters:
+    - start_date: Ngày bắt đầu (YYYY-MM-DD) (required)
+    - end_date: Ngày kết thúc (YYYY-MM-DD) (required)
+    - meal_type: Filter theo loại bữa ăn (optional)
+
+    Returns:
+    - Tổng số bữa ăn
+    - Tổng số món ăn đã ăn
+    - Danh sách món ăn với số lần xuất hiện
+    - Tổng cộng các chất dinh dưỡng (calories, protein, fat, carbs, fiber, sodium)
+    - Trung bình các chất dinh dưỡng mỗi ngày
+    - Breakdown theo loại bữa ăn
+    - Timeline theo ngày
+
+    TODO: Implement JWT authentication to get user_id
+    """
+    try:
+        # TODO: Replace with JWT authentication
+        # For now, using mock user_id = 1
+        user_id_int = 1
+
+        # Verify user exists
+        user = get_user_by_id(db, user_id_int)
+        if not user:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Mock user with ID {user_id_int} not found. \
+                    Please ensure user exists in database.",
+            )
+
+        # Parse dates
+        try:
+            start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+            end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+            # Set time to end of day for end_date
+            end_dt = datetime.combine(end_dt.date(), time(23, 59, 59))
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid date format. Use YYYY-MM-DD (e.g., 2025-01-01)",
+            )
+
+        # Validate date range
+        if start_dt > end_dt:
+            raise HTTPException(
+                status_code=400,
+                detail="Start date must be before or equal to end date",
+            )
+
+        # Validate meal_type if provided
+        meal_type_enum = None
+        if meal_type:
+            try:
+                meal_type_enum = MealTypeDB(meal_type.lower())
+            except ValueError:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid meal type. Must be one of: \
+                    {', '.join([e.value for e in MealTypeDB])}",
+                )
+
+        # Get meals in date range
+        meals = get_user_meals_by_date_range(
+            db=db,
+            user_id=user_id_int,
+            start_date=start_dt,
+            end_date=end_dt,
+            meal_type=meal_type_enum,
+        )
+
+        # Initialize statistics
+        total_meals = len(meals)
+        total_items = 0
+        food_items_count = {}  # {food_name: count}
+        all_meals_list = []  # List of all meals with details
+
+        # Initialize nutrition totals
+        total_nutrition = {
+            "calories": 0.0,
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 0.0,
+            "fiber": 0.0,
+            "sodium": 0.0,
+        }
+
+        # Breakdown by meal type
+        meal_type_breakdown = {
+            "breakfast": {
+                "count": 0,
+                "calories": 0.0,
+                "protein": 0.0,
+                "fat": 0.0,
+                "carbs": 0.0,
+                "fiber": 0.0,
+                "sodium": 0.0,
+            },
+            "lunch": {
+                "count": 0,
+                "calories": 0.0,
+                "protein": 0.0,
+                "fat": 0.0,
+                "carbs": 0.0,
+                "fiber": 0.0,
+                "sodium": 0.0,
+            },
+            "dinner": {
+                "count": 0,
+                "calories": 0.0,
+                "protein": 0.0,
+                "fat": 0.0,
+                "carbs": 0.0,
+                "fiber": 0.0,
+                "sodium": 0.0,
+            },
+            "snack": {
+                "count": 0,
+                "calories": 0.0,
+                "protein": 0.0,
+                "fat": 0.0,
+                "carbs": 0.0,
+                "fiber": 0.0,
+                "sodium": 0.0,
+            },
+        }
+
+        # Timeline by date
+        daily_timeline = {}
+
+        # Process each meal
+        for meal in meals:
+            # Count meal type
+            meal_type_key = meal.meal_type.value
+            meal_type_breakdown[meal_type_key]["count"] += 1
+            meal_type_breakdown[meal_type_key]["calories"] += meal.total_calories or 0
+            meal_type_breakdown[meal_type_key]["protein"] += meal.total_protein or 0
+            meal_type_breakdown[meal_type_key]["fat"] += meal.total_fat or 0
+            meal_type_breakdown[meal_type_key]["carbs"] += meal.total_carbs or 0
+            meal_type_breakdown[meal_type_key]["fiber"] += meal.total_fiber or 0
+            meal_type_breakdown[meal_type_key]["sodium"] += meal.total_sodium or 0
+
+            # Add to total nutrition
+            total_nutrition["calories"] += meal.total_calories or 0
+            total_nutrition["protein"] += meal.total_protein or 0
+            total_nutrition["fat"] += meal.total_fat or 0
+            total_nutrition["carbs"] += meal.total_carbs or 0
+            total_nutrition["fiber"] += meal.total_fiber or 0
+            total_nutrition["sodium"] += meal.total_sodium or 0
+
+            # Collect meal items for food count
+            meal_items = []
+            for item in meal.items:
+                total_items += 1
+                food_name = item.name or "Unknown"
+                food_items_count[food_name] = food_items_count.get(food_name, 0) + 1
+                meal_items.append(
+                    {
+                        "name": item.name,
+                        "estimated_weight": item.estimated_weight,
+                        "calories": item.calories,
+                        "protein": item.protein,
+                        "fat": item.fat,
+                        "carbs": item.carbs,
+                        "fiber": item.fiber,
+                        "sodium": item.sodium,
+                    }
+                )
+
+            # Add meal to all meals list
+            all_meals_list.append(
+                {
+                    "id": meal.id,
+                    "meal_name": meal.meal_name,
+                    "meal_type": meal.meal_type.value,
+                    "meal_time": meal.meal_time.isoformat() if meal.meal_time else None,
+                    "image_url": meal.image_url,
+                    "items": meal_items,
+                    "nutrition_summary": {
+                        "calories": meal.total_calories,
+                        "protein": meal.total_protein,
+                        "fat": meal.total_fat,
+                        "carbs": meal.total_carbs,
+                        "fiber": meal.total_fiber,
+                        "sodium": meal.total_sodium,
+                    },
+                }
+            )
+
+            # Add to daily timeline
+            meal_date = meal.meal_time.date().isoformat()
+            if meal_date not in daily_timeline:
+                daily_timeline[meal_date] = {
+                    "date": meal_date,
+                    "meals_count": 0,
+                    "meals": [],
+                    "calories": 0.0,
+                    "protein": 0.0,
+                    "fat": 0.0,
+                    "carbs": 0.0,
+                    "fiber": 0.0,
+                    "sodium": 0.0,
+                }
+
+            daily_timeline[meal_date]["meals_count"] += 1
+            daily_timeline[meal_date]["meals"].append(
+                {
+                    "id": meal.id,
+                    "meal_name": meal.meal_name,
+                    "meal_type": meal.meal_type.value,
+                    "image_url": meal.image_url,
+                    "items_count": len(meal.items),
+                }
+            )
+            daily_timeline[meal_date]["calories"] += meal.total_calories or 0
+            daily_timeline[meal_date]["protein"] += meal.total_protein or 0
+            daily_timeline[meal_date]["fat"] += meal.total_fat or 0
+            daily_timeline[meal_date]["carbs"] += meal.total_carbs or 0
+            daily_timeline[meal_date]["fiber"] += meal.total_fiber or 0
+            daily_timeline[meal_date]["sodium"] += meal.total_sodium or 0
+
+        # Calculate number of days
+        num_days = (end_dt.date() - start_dt.date()).days + 1
+
+        # Calculate daily averages
+        daily_averages = {
+            "calories": (
+                round(total_nutrition["calories"] / num_days, 2) if num_days > 0 else 0
+            ),
+            "protein": (
+                round(total_nutrition["protein"] / num_days, 2) if num_days > 0 else 0
+            ),
+            "fat": round(total_nutrition["fat"] / num_days, 2) if num_days > 0 else 0,
+            "carbs": (
+                round(total_nutrition["carbs"] / num_days, 2) if num_days > 0 else 0
+            ),
+            "fiber": (
+                round(total_nutrition["fiber"] / num_days, 2) if num_days > 0 else 0
+            ),
+            "sodium": (
+                round(total_nutrition["sodium"] / num_days, 2) if num_days > 0 else 0
+            ),
+        }
+
+        # Sort food items by count
+        top_foods = sorted(
+            [
+                {"name": name, "count": count}
+                for name, count in food_items_count.items()
+            ],
+            key=lambda x: x["count"],
+            reverse=True,
+        )
+
+        # Sort timeline by date
+        timeline_list = sorted(daily_timeline.values(), key=lambda x: x["date"])
+
+        # Round nutrition totals
+        total_nutrition = {k: round(v, 2) for k, v in total_nutrition.items()}
+
+        # Round meal type breakdown
+        for meal_type_key in meal_type_breakdown:
+            meal_type_breakdown[meal_type_key] = {
+                k: round(v, 2) if isinstance(v, float) else v
+                for k, v in meal_type_breakdown[meal_type_key].items()
+            }
+
+        # Build response
+        response = {
+            "period": {
+                "start_date": start_date,
+                "end_date": end_date,
+                "total_days": num_days,
+            },
+            "summary": {
+                "total_meals": total_meals,
+                "total_food_items": total_items,
+                "unique_foods": len(food_items_count),
+            },
+            "nutrition_totals": total_nutrition,
+            "daily_averages": daily_averages,
+            "meal_type_breakdown": meal_type_breakdown,
+            "top_foods": top_foods,
+            "meals": all_meals_list,
+            "daily_timeline": timeline_list,
+        }
+
+        return JSONResponse(content=response, status_code=200)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get nutrition statistics: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get nutrition statistics: {str(e)}"
         )
