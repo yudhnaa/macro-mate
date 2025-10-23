@@ -1,10 +1,17 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function ChatbotPage() {
   const [messages, setMessages] = useState<
-    Array<{ role: "user" | "assistant"; content: string; timestamp: Date }>
+    Array<{ 
+      role: "user" | "assistant"; 
+      content: string; 
+      timestamp: Date;
+      imageUrl?: string; 
+    }>
   >([
     {
       role: "assistant",
@@ -32,40 +39,6 @@ export default function ChatbotPage() {
     scrollToBottom();
   }, [messages]);
 
-  // Hàm parse markdown để hiển thị text in đậm
-  const parseMarkdown = (text: string) => {
-    const parts = [];
-    let lastIndex = 0;
-    const boldRegex = /\*\*(.*?)\*\*/g;
-    let match;
-
-    while ((match = boldRegex.exec(text)) !== null) {
-      // Thêm text trước phần in đậm
-      if (match.index > lastIndex) {
-        parts.push({
-          type: "normal",
-          content: text.substring(lastIndex, match.index),
-        });
-      }
-      // Thêm phần in đậm
-      parts.push({
-        type: "bold",
-        content: match[1],
-      });
-      lastIndex = match.index + match[0].length;
-    }
-
-    // Thêm phần text còn lại
-    if (lastIndex < text.length) {
-      parts.push({
-        type: "normal",
-        content: text.substring(lastIndex),
-      });
-    }
-
-    return parts;
-  };
-
   // Xử lý chọn ảnh
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -88,22 +61,6 @@ export default function ChatbotPage() {
     }
   };
 
-  // Upload ảnh lên server (nếu cần)
-  const uploadImage = async (file: File): Promise<string> => {
-    // Tùy backend, bạn có thể:
-    // 1. Upload lên server và nhận URL
-    // 2. Hoặc convert sang base64 và gửi trực tiếp
-
-    // Ví dụ convert sang base64:
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        resolve(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputMessage.trim() && !imageFile) return;
@@ -112,6 +69,7 @@ export default function ChatbotPage() {
       role: "user" as const,
       content: inputMessage,
       timestamp: new Date(),
+      imageUrl: selectedImage || undefined, // Thêm ảnh vào message
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -132,30 +90,32 @@ export default function ChatbotPage() {
     ]);
 
     try {
-      // Upload ảnh nếu có
-      let imageUrl = "";
-      if (currentImageFile) {
-        imageUrl = await uploadImage(currentImageFile);
-        // Reset image sau khi gửi
-        handleRemoveImage();
-      }
-
       const accessToken = localStorage.getItem("token");
       // Lấy thread_id từ localStorage (nếu có)
       const threadId = localStorage.getItem("chatbot_thread_id") || "";
 
+      // Tạo FormData để upload file theo đúng API
+      const formData = new FormData();
+      formData.append("thread_id", threadId);
+      formData.append("user_query", currentQuery);
+      
+      if (currentImageFile) {
+        formData.append("img_file", currentImageFile);
+      }
+
       const response = await fetch("http://127.0.0.1:8000/advice/stream", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
+          // Không set Content-Type, để browser tự động set với boundary
         },
-        body: JSON.stringify({
-          thread_id: threadId,
-          image_url: imageUrl,
-          user_query: currentQuery,
-        }),
+        body: formData,
       });
+
+      // Reset image sau khi gửi
+      if (currentImageFile) {
+        handleRemoveImage();
+      }
 
       if (!response.ok) {
         throw new Error("Failed to fetch response");
@@ -328,18 +288,66 @@ export default function ChatbotPage() {
                       : "bg-white border border-gray-200 text-gray-800"
                   }`}
                 >
-                  <div className="text-sm leading-relaxed whitespace-pre-wrap">
-                    {message.role === "assistant"
-                      ? parseMarkdown(message.content).map((part, idx) =>
-                          part.type === "bold" ? (
-                            <strong key={idx} className="font-bold">
-                              {part.content}
+                  {/* Hiển thị ảnh nếu có */}
+                  {message.imageUrl && (
+                    <div className="mb-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={message.imageUrl}
+                        alt="Uploaded"
+                        className="max-w-full max-h-64 rounded-lg"
+                      />
+                    </div>
+                  )}
+                  
+                  <div className="text-sm leading-relaxed markdown-content">
+                    {message.role === "assistant" ? (
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          h2: ({ children }) => (
+                            <h2 className="text-base font-bold mb-2 mt-3 text-gray-800">
+                              {children}
+                            </h2>
+                          ),
+                          h3: ({ children }) => (
+                            <h3 className="text-sm font-semibold mb-1 mt-2 text-gray-700">
+                              {children}
+                            </h3>
+                          ),
+                          p: ({ children }) => (
+                            <p className="my-1 text-gray-700">{children}</p>
+                          ),
+                          ul: ({ children }) => (
+                            <ul className="my-1 ml-4 list-disc space-y-0.5">
+                              {children}
+                            </ul>
+                          ),
+                          ol: ({ children }) => (
+                            <ol className="my-1 ml-4 list-decimal space-y-0.5">
+                              {children}
+                            </ol>
+                          ),
+                          li: ({ children }) => (
+                            <li className="text-gray-700">{children}</li>
+                          ),
+                          strong: ({ children }) => (
+                            <strong className="font-semibold text-gray-900">
+                              {children}
                             </strong>
-                          ) : (
-                            <span key={idx}>{part.content}</span>
-                          )
-                        )
-                      : message.content}
+                          ),
+                          code: ({ children }) => (
+                            <code className="bg-gray-100 px-1 py-0.5 rounded text-xs">
+                              {children}
+                            </code>
+                          ),
+                        }}
+                      >
+                        {message.content}
+                      </ReactMarkdown>
+                    ) : (
+                      <div className="whitespace-pre-wrap">{message.content}</div>
+                    )}
                   </div>
                   <p
                     className={`text-xs mt-2 ${
