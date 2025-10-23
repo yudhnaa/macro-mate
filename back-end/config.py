@@ -76,7 +76,7 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=True,
-        extra="ignore", 
+        extra="ignore",
         populate_by_name=True,
     )
 
@@ -101,11 +101,10 @@ class Settings(BaseSettings):
     )
     CLOUDINARY_FOLDER: str = Field(
         default="macro-mate/food-images",
-        description="Cloudinary folder for uploaded images"
+        description="Cloudinary folder for uploaded images",
     )
     CLOUDINARY_MAX_FILE_SIZE: int = Field(
-        default=10 * 1024 * 1024,  # 10MB
-        description="Max file size in bytes"
+        default=10 * 1024 * 1024, description="Max file size in bytes"  # 10MB
     )
 
     # ===== YAML Config Cache =====
@@ -216,7 +215,11 @@ class Settings(BaseSettings):
         if not api_key:
             raise ValueError(
                 f"API key for '{provider}' not set. "
-                f"Please set {'OPENROUTER_API_KEY' if provider == 'openrouter' else 'GOOGLE_API_KEY'} "
+                f"Please set {
+                    'OPENROUTER_API_KEY'
+                    if provider == 'openrouter'
+                    else 'GOOGLE_API_KEY'
+                } "
                 f"in .env file"
             )
 
@@ -224,7 +227,10 @@ class Settings(BaseSettings):
 
     @property
     def DATABASE_URL(self) -> str:
-        return f"postgresql://{self.DATABASE_USER}:{self.DATABASE_PASSWORD}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
+        return (
+            f"postgresql://{self.DATABASE_USER}:{self.DATABASE_PASSWORD}"
+            f"@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
+        )
 
     # class Config:
     #     env_file = ".env"

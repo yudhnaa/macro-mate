@@ -124,14 +124,14 @@ export default function NutritionPanel({
         <h2 className="text-xl font-semibold text-gray-800">Nutrition</h2>
         <div className="flex gap-2">
           {/* Clock/History Icon */}
-          <button 
+          <button
             className="p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors"
             title="View History"
           >
             <ClockIcon className="w-5 h-5" />
           </button>
           {/* Settings Icon */}
-          <button 
+          <button
             className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
             title="Settings"
           >

@@ -124,7 +124,7 @@ export default function ImageDetailModal({
               <h4 className="text-lg font-semibold text-gray-900 mb-4">
                 Nutrition Information
               </h4>
-              
+
               {/* Main Macros */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                 <div className="bg-orange-50 rounded-lg p-4 text-center">

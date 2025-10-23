@@ -16,16 +16,16 @@ interface NxInputProps {
   placeholder?: string;
 }
 
-const NxInput: React.FC<NxInputProps> = ({ 
-  id, 
-  name, 
-  label, 
-  type = "text", 
-  value, 
-  onChange, 
-  required = false, 
+const NxInput: React.FC<NxInputProps> = ({
+  id,
+  name,
+  label,
+  type = "text",
+  value,
+  onChange,
+  required = false,
   minLength,
-  placeholder 
+  placeholder
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const isPasswordField = type === "password";
@@ -36,8 +36,8 @@ const NxInput: React.FC<NxInputProps> = ({
 
   return (
     <div>
-      <label 
-        htmlFor={id} 
+      <label
+        htmlFor={id}
         className="block text-sm font-medium mb-2"
         style={{ color: COLORS.text.secondary }}
       >

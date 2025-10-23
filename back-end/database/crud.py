@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 
-from database.models import DirectionDB, FoodDB, UserDB
+from database.models import FoodDB, UserDB
 from sqlalchemy.orm import Session, joinedload
 
 
@@ -39,12 +39,12 @@ def update_user_profile(
     user = get_user_by_id(db, user_id)
     if not user:
         return None
-    
+
     # Update only provided fields
     for key, value in profile_data.items():
         if hasattr(user, key) and value is not None:
             setattr(user, key, value)
-    
+
     db.commit()
     db.refresh(user)
     return user
@@ -59,6 +59,7 @@ def create_user_profile(
 
 # ============= Food CRUD Operations =============
 
+
 def get_foods(
     db: Session,
     skip: int = 0,
@@ -66,11 +67,11 @@ def get_foods(
     meal_type: Optional[str] = None,
     equipment: Optional[str] = None,
     max_complexity: Optional[int] = None,
-    search: Optional[str] = None
+    search: Optional[str] = None,
 ) -> List[FoodDB]:
     """
     Get list of foods with optional filters
-    
+
     Args:
         db: Database session
         skip: Number of records to skip (pagination)
@@ -81,20 +82,20 @@ def get_foods(
         search: Search by food name
     """
     query = db.query(FoodDB)
-    
+
     # Filter by meal type
     if meal_type:
         if meal_type == "breakfast":
-            query = query.filter(FoodDB.is_breakfast == True)
+            query = query.filter(FoodDB.is_breakfast)
         elif meal_type == "lunch":
-            query = query.filter(FoodDB.is_lunch == True)
+            query = query.filter(FoodDB.is_lunch)
         elif meal_type == "dinner":
-            query = query.filter(FoodDB.is_dinner == True)
+            query = query.filter(FoodDB.is_dinner)
         elif meal_type == "snack":
-            query = query.filter(FoodDB.is_snack == True)
+            query = query.filter(FoodDB.is_snack)
         elif meal_type == "dessert":
-            query = query.filter(FoodDB.is_dessert == True)
-    
+            query = query.filter(FoodDB.is_dessert)
+
     # Filter by equipment
     if equipment:
         equipment_map = {
@@ -108,19 +109,19 @@ def get_foods(
             "grill": FoodDB.needs_grill,
         }
         if equipment in equipment_map:
-            query = query.filter(equipment_map[equipment] == True)
-    
+            query = query.filter(equipment_map[equipment])
+
     # Filter by complexity
     if max_complexity is not None:
         query = query.filter(FoodDB.complexity <= max_complexity)
-    
+
     # Search by name
     if search:
         query = query.filter(FoodDB.name.ilike(f"%{search}%"))
-    
+
     # Eager load directions and order them by 'order' field
     query = query.options(joinedload(FoodDB.direction))
-    
+
     return query.offset(skip).limit(limit).all()
 
 
@@ -153,12 +154,12 @@ def update_food(db: Session, food_id: int, food_data: Dict) -> Optional[FoodDB]:
     food = get_food_by_id(db, food_id)
     if not food:
         return None
-    
+
     # Update only provided fields
     for key, value in food_data.items():
         if hasattr(food, key) and value is not None:
             setattr(food, key, value)
-    
+
     db.commit()
     db.refresh(food)
     return food
@@ -169,7 +170,7 @@ def delete_food(db: Session, food_id: int) -> bool:
     food = get_food_by_id(db, food_id)
     if not food:
         return False
-    
+
     db.delete(food)
     db.commit()
     return True

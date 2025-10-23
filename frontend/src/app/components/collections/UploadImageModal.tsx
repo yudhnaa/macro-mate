@@ -10,8 +10,8 @@ interface UploadImageModalProps {
   initialDate?: Date;
 }
 
-export default function UploadImageModal({ 
-  onClose, 
+export default function UploadImageModal({
+  onClose,
   onSuccess,
   initialMealType = 'lunch',
   initialDate = new Date()
@@ -40,14 +40,14 @@ export default function UploadImageModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!selectedFile) {
       alert("Please select an image");
       return;
     }
 
     setUploading(true);
-    
+
     // Simulate upload - tạo mock image mới
     setTimeout(() => {
       const newImage: FoodImage = {
@@ -58,7 +58,7 @@ export default function UploadImageModal({
         analyzed: false,
         createdAt: new Date().toISOString(),
       };
-      
+
       onSuccess(newImage);
       setUploading(false);
     }, 1000);

@@ -34,7 +34,7 @@ export default function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       await dispatch(loginUser({ email, password })).unwrap();
       // Success - will redirect via useEffect
@@ -151,9 +151,9 @@ export default function LoginForm() {
           <button
             type="button"
             className="w-full flex items-center justify-center gap-3 px-4 py-3 border rounded-lg hover:bg-gray-50 transition-colors font-medium"
-            style={{ 
+            style={{
               borderColor: COLORS.border.DEFAULT,
-              color: COLORS.text.primary 
+              color: COLORS.text.primary
             }}
           >
             <GoogleIcon width={20} height={20} />
@@ -163,9 +163,9 @@ export default function LoginForm() {
           <button
             type="button"
             className="w-full flex items-center justify-center gap-3 px-4 py-3 border rounded-lg hover:bg-gray-50 transition-colors font-medium"
-            style={{ 
+            style={{
               borderColor: COLORS.border.DEFAULT,
-              color: COLORS.text.primary 
+              color: COLORS.text.primary
             }}
           >
             <GithubIcon width={20} height={20} />

@@ -1,5 +1,3 @@
-from typing import Any, Dict
-
 from repository.user_repository import UserRepository
 from utils.redis_client import RedisCache
 

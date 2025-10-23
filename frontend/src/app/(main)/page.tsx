@@ -12,13 +12,13 @@ export default function Home() {
         <div className="container px-4 md:px-6 mx-auto">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <div className="space-y-2 max-w-3xl">
-              <h2 
+              <h2
                 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl"
                 style={{ color: COLORS.text.primary }}
               >
                 Create your meal plan right here in seconds
               </h2>
-              <p 
+              <p
                 className="text-lg md:text-xl"
                 style={{ color: COLORS.text.secondary }}
               >

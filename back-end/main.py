@@ -7,8 +7,7 @@ from database.init_db import init_db
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from models.factory import ModelFactory
-from routers import advice, auth, analys
-from routers import advice, auth, food, profile
+from routers import advice, analys, auth, food, profile
 from utils.logger import setup_logger
 from utils.redis_client import RedisCache
 
@@ -85,12 +84,11 @@ app = FastAPI(title="Macro Mate API", version="1.0.0", lifespan=lifespan)
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 
 # Include routers

@@ -352,7 +352,7 @@ export default function PlannerSidebar() {
           </svg>
           <span className="font-medium">Home</span>
         </button>
-        <button 
+        <button
           onClick={handleLogout}
           className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-red-600 hover:bg-red-50 w-full transition-colors"
         >

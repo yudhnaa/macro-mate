@@ -7,7 +7,6 @@ from langgraph_flow.state import GraphState
 from models.factory import ModelFactory
 from prompt import image_advisor_prompt, text_advisor_prompt, vision_extract_prompt
 from schema.recognition_food import RecognitionWithSafety
-from sqlalchemy.testing.suite.test_reflection import users
 from utils.logger import setup_logger
 
 # Factory Method : Gọi mô hình
@@ -66,7 +65,7 @@ def vision_node(state: GraphState):
 
         try:
             result = parser.parse(raw_text)
-        except OutputParserException as e:
+        except OutputParserException:
             fix_prompt = f"""
             The following JSON is malformed. Fix it to match this schema:
             {format_instructions}
@@ -128,14 +127,6 @@ def image_advisor_node(state: GraphState) -> GraphState:
             )
             or "  Không có thông tin chi tiết"
         )
-
-        # Map goal to Vietnamese
-        goal_map = {
-            "lose_weight": "Giảm cân",
-            "gain_muscle": "Tăng cơ",
-            "maintain": "Duy trì",
-            "diabetic": "Kiểm soát đường huyết",
-        }
 
         # Build chain
         prompt = image_advisor_prompt.get_image_advisor_prompt()

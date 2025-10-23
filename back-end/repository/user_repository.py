@@ -1,4 +1,4 @@
-### GIẢ LẬP CHỨC NĂNG LẤY THÔNG TIN NGƯỜI DÙNG ###
+# GIẢ LẬP CHỨC NĂNG LẤY THÔNG TIN NGƯỜI DÙNG
 
 from typing import Any, Dict, Optional
 

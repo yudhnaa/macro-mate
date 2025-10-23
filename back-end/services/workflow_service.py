@@ -5,15 +5,15 @@ from typing import Any, AsyncIterator, Dict
 from database.checkpointer import get_async_checkpointer
 from langchain_core.messages import AIMessage, HumanMessage
 from langgraph_flow.graph import build_workflow
+from langgraph_flow.nodes import vision_node
 from langgraph_flow.state import GraphState
 from models.factory import ModelFactory
 from prompt.image_advisor_prompt import get_image_advisor_prompt
 from prompt.text_advisor_prompt import get_text_advisor_prompt
+from schema.recognition_food import RecognitionWithSafety
 from services.user_service import UserProfileService
 from utils.logger import setup_logger
 from utils.redis_client import RedisCache
-from schema.recognition_food import RecognitionWithSafety
-from langgraph_flow.nodes import vision_node
 
 logger = setup_logger(__name__)
 
@@ -156,7 +156,7 @@ class WorkflowService:
                         await graph.aupdate_state(
                             config, {"messages": messages}, as_node=node_name
                         )
-                        logger.info(f"Streamed response saved to checkpoint")
+                        logger.info("Streamed response saved to checkpoint")
                     except Exception as e:
                         logger.warning(f"Failed to update state: {e}")
                 else:
@@ -213,7 +213,7 @@ class WorkflowService:
             }
         else:
             return {**common_input, "user_query": state.get("user_query", "")}
-    
+
     async def analyze_image(self, img_url: str) -> RecognitionWithSafety:
         try:
             logger.info(f"Starting image analysis for {img_url}")
@@ -233,15 +233,16 @@ class WorkflowService:
                 logger.error(f"Image analysis error: {result_state['error']}")
                 raise Exception(result_state["error"])
             vision_result = result_state.get("vision_result")
-            
+
             if not vision_result:
                 raise ValueError("Vision analys not return the result")
 
             logger.info(f"Vision analyst succesful {vision_result.dish_name}")
             return vision_result
-        except Exception as e:
+        except Exception:
             logger.error("analyze image failed")
             raise
+
 
 _service_instance = None
 

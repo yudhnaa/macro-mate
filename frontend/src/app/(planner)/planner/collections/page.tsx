@@ -140,7 +140,7 @@ export default function CollectionsPage() {
 
   const handleDeleteImage = (imageId: string) => {
     if (!confirm("Are you sure you want to delete this image?")) return;
-    
+
     setImages(images.filter((img) => img.id !== imageId));
     if (selectedImage?.id === imageId) {
       setSelectedImage(null);

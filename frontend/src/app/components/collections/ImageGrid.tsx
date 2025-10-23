@@ -59,7 +59,7 @@ export default function ImageGrid({
               className="object-cover cursor-pointer"
               onClick={() => onImageClick(image)}
             />
-            
+
             {/* Overlay Actions */}
             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all">
               {/* Checkbox */}

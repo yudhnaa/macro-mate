@@ -1,14 +1,16 @@
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
-from typing import Dict, Any, Optional, BinaryIO
-from fastapi import UploadFile, HTTPException
-from config import settings
-from utils.logger import setup_logger
 import uuid
 from datetime import datetime
+from typing import Any, Dict, Optional
+
+import cloudinary
+import cloudinary.api
+import cloudinary.uploader
+from config import settings
+from fastapi import HTTPException, UploadFile
+from utils.logger import setup_logger
 
 logger = setup_logger(__name__)
+
 
 class CloudinaryService:
     def __init__(self):
@@ -17,13 +19,13 @@ class CloudinaryService:
                 cloud_name=settings.CLOUDINARY_CLOUD_NAME,
                 api_key=settings.CLOUDINARY_API_KEY,
                 api_secret=settings.CLOUDINARY_API_SECRET,
-                secure=True
+                secure=True,
             )
             logger.info("Cloudinary configured successfully")
         except Exception as e:
             logger.error(f"Failed to configure Cloudinary: {e}")
             raise
-    
+
     async def upload_image(
         self,
         file: UploadFile,
@@ -34,9 +36,12 @@ class CloudinaryService:
             if not file.content_type or not file.content_type.startswith("image/"):
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Invalid file type. Expected image/*, got {file.content_type}"
-               )
-            
+                    detail=(
+                        f"Invalid file type. Expected image/*, "
+                        f"got {file.content_type}"
+                    ),
+                )
+
             file_size = 0
             content = await file.read()
             file_size = len(content)
@@ -44,16 +49,17 @@ class CloudinaryService:
             if file_size > settings.CLOUDINARY_MAX_FILE_SIZE:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"File too large. Max size: {settings.CLOUDINARY_MAX_FILE_SIZE / 1024 / 1024}MB"
+                    detail=f"File too large. Max size: \
+                        {settings.CLOUDINARY_MAX_FILE_SIZE / 1024 / 1024}MB",
                 )
-            
+
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             unique_id = uuid.uuid4().hex[:8]
 
             folder_parts = [settings.CLOUDINARY_FOLDER]
             if user_id:
                 folder_parts.append(f"user_{user_id}")
-            
+
             folder = "/".join(folder_parts)
             public_id = f"{folder}/{timestamp}_{unique_id}"
 
@@ -69,16 +75,10 @@ class CloudinaryService:
 
             if optimize:
                 upload_options["transformation"] = [
-                    {
-                        "quality": "auto:good",
-                        "fetch_format": "auto"
-                    }
+                    {"quality": "auto:good", "fetch_format": "auto"}
                 ]
-            
-            result = cloudinary.uploader.upload(
-                content,
-                **upload_options
-            )
+
+            result = cloudinary.uploader.upload(content, **upload_options)
 
             logger.info(f"Upload successful: {result['secure_url']}")
             response = {
@@ -98,23 +98,20 @@ class CloudinaryService:
         except Exception as e:
             logger.error(f"Cloudinary upload failed: {e}")
             raise HTTPException(
-                status_code=500,
-                detail=f"Failed to upload image: {str(e)}"
+                status_code=500, detail=f"Failed to upload image: {str(e)}"
             )
-    
+
     async def upload_from_url(
-        self,
-        image_url: str,
-        user_id: Optional[str] = None
+        self, image_url: str, user_id: Optional[str] = None
     ) -> Dict[str, Any]:
         try:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             unique_id = uuid.uuid4().hex[:8]
-            
+
             folder_parts = [settings.CLOUDINARY_FOLDER]
             if user_id:
                 folder_parts.append(f"user_{user_id}")
-            
+
             folder = "/".join(folder_parts)
             public_id = f"{folder}/{timestamp}_{unique_id}"
 
@@ -125,12 +122,7 @@ class CloudinaryService:
                 public_id=public_id,
                 folder=folder,
                 resource_type="image",
-                transformation=[
-                    {
-                        "quality": "auto:good",
-                        "fetch_format": "auto"
-                    }
-                ]
+                transformation=[{"quality": "auto:good", "fetch_format": "auto"}],
             )
 
             logger.info(f"Upload from URL successful: {result['secure_url']}")
@@ -149,23 +141,22 @@ class CloudinaryService:
         except Exception as e:
             logger.error(f"Upload from URL failed: {e}")
             raise HTTPException(
-                status_code=500,
-                detail=f"Failed to upload from URL: {str(e)}"
+                status_code=500, detail=f"Failed to upload from URL: {str(e)}"
             )
-    
+
     async def delete_image(self, public_id: str) -> bool:
         """
         Xóa ảnh khỏi Cloudinary
-        
+
         Args:
             public_id: Public ID của ảnh cần xóa
-            
+
         Returns:
             True nếu xóa thành công
         """
         try:
             result = cloudinary.uploader.destroy(public_id)
-            
+
             if result.get("result") == "ok":
                 logger.info(f"Image deleted: {public_id}")
                 return True
@@ -176,32 +167,29 @@ class CloudinaryService:
         except Exception as e:
             logger.error(f"Delete failed: {e}")
             return False
-    
+
     def get_optimized_url(
         self,
         public_id: str,
         width: Optional[int] = None,
         height: Optional[int] = None,
         crop: str = "fill",
-        quality: str = "auto:good"
+        quality: str = "auto:good",
     ) -> str:
         """
         Tạo URL với transformation
-        
+
         Args:
             public_id: Public ID của ảnh
             width: Width mong muốn
             height: Height mong muốn
             crop: Crop mode (fill, fit, scale, etc.)
             quality: Quality (auto:good, auto:best, 80, etc.)
-            
+
         Returns:
             Optimized URL
         """
-        transformations = {
-            "quality": quality,
-            "fetch_format": "auto"
-        }
+        transformations = {"quality": quality, "fetch_format": "auto"}
 
         if width:
             transformations["width"] = width
@@ -213,6 +201,7 @@ class CloudinaryService:
         url = cloudinary.CloudinaryImage(public_id).build_url(**transformations)
         return url
 
+
 # Singleton instance
 _cloudinary_service: Optional[CloudinaryService] = None
 
@@ -220,7 +209,7 @@ _cloudinary_service: Optional[CloudinaryService] = None
 def get_cloudinary_service() -> CloudinaryService:
     """
     Dependency injection cho FastAPI
-    
+
     Usage:
         @router.post("/upload")
         async def upload(

@@ -4,9 +4,7 @@ from typing import Optional
 
 from dependencies import get_workflow_service
 from fastapi import APIRouter, Depends, Header, HTTPException
-from fastapi.params import Depends
 from fastapi.responses import StreamingResponse
-from langchain_community.callbacks.llmonitor_callback import user_props_ctx
 from pydantic import BaseModel, Field
 from services.user_service import UserProfileService
 from services.workflow_service import WorkflowService, get_profile_service

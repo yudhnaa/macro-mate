@@ -12,7 +12,7 @@ export default function LogoutPage() {
 
   useEffect(() => {
     dispatch(logout());
-    
+
     const timer = setTimeout(() => {
       router.push("/");
     }, 1000);
