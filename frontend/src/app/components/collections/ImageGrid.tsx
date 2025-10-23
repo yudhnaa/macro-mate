@@ -58,10 +58,13 @@ export default function ImageGrid({
               fill
               className="object-cover cursor-pointer"
               onClick={() => onImageClick(image)}
+              unoptimized
+              onError={() => {
+                console.error('Image failed to load:', image.imageUrl);
+              }}
             />
-
             {/* Overlay Actions */}
-            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all">
+            <div className="absolute inset-0 bg-opacity-0 group-hover:bg-opacity-30 transition-all">
               {/* Checkbox */}
               <div className="absolute top-3 left-3">
                 <button

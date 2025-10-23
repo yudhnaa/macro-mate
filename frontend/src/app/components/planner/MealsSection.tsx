@@ -1,30 +1,97 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import AlertTriangleIcon from '../icon/AlertTriangleIcon';
 import RefreshIcon from '../icon/RefreshIcon';
 import MoreVerticalIcon from '../icon/MoreVerticalIcon';
 import UploadImageModal from '../collections/UploadImageModal';
 import { FoodImage } from '@/types/collection.types';
+import { getMealHistory, MealHistoryItem } from '@/lib/api/analysis.api';
 
 interface MealsSectionProps {
   selectedDate?: Date;
+  mealImages?: { [key: string]: FoodImage[] };
+  onMealImagesChange?: (images: { [key: string]: FoodImage[] }) => void;
 }
 
-export default function MealsSection({ selectedDate = new Date() }: MealsSectionProps) {
+// Transform API meal data to FoodImage format
+const transformMealToFoodImage = (meal: MealHistoryItem): FoodImage => {
+  return {
+    id: meal.id.toString(),
+    imageUrl: meal.image_url,
+    date: meal.meal_time ? meal.meal_time.split('T')[0] : new Date().toISOString().split('T')[0],
+    mealType: meal.meal_type,
+    analyzed: meal.analysis_status === 'completed',
+    createdAt: meal.created_at || new Date().toISOString(),
+    dishName: meal.meal_name,
+    nutritionInfo: {
+      calories: meal.nutrition_summary.total_calories,
+      protein: meal.nutrition_summary.total_protein,
+      carbs: meal.nutrition_summary.total_carbs,
+      fat: meal.nutrition_summary.total_fat,
+      fiber: meal.nutrition_summary.total_fiber,
+      sodium: meal.nutrition_summary.total_sodium,
+    },
+  };
+};
+
+export default function MealsSection({ 
+  selectedDate = new Date(),
+  mealImages: externalMealImages,
+  onMealImagesChange
+}: MealsSectionProps) {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedMealType, setSelectedMealType] = useState<'breakfast' | 'lunch' | 'dinner' | 'snack'>('lunch');
-  const [mealImages, setMealImages] = useState<{ [key: string]: FoodImage[] }>({
+  const [internalMealImages, setInternalMealImages] = useState<{ [key: string]: FoodImage[] }>({
     breakfast: [],
     lunch: [],
     dinner: [],
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>('');
 
-  const meals: Array<{ type: 'breakfast' | 'lunch' | 'dinner'; label: string; icon: string }> = [
-    { type: 'breakfast', label: 'Breakfast', icon: '🌅' },
-    { type: 'lunch', label: 'Lunch', icon: '☀️' },
-    { type: 'dinner', label: 'Dinner', icon: '🌙' },
+  // Use external state if provided, otherwise use internal state
+  const mealImages = externalMealImages ?? internalMealImages;
+  const updateMealImages = onMealImagesChange ?? setInternalMealImages;
+
+  // Fetch meals for the selected date
+  useEffect(() => {
+    const fetchMealsForDate = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        
+        const response = await getMealHistory({ limit: 100 });
+        const transformedImages = response.meals.map(transformMealToFoodImage);
+        
+        // Filter meals by selected date
+        const selectedDateStr = selectedDate.toISOString().split('T')[0];
+        const mealsForDate = transformedImages.filter(meal => meal.date === selectedDateStr);
+        
+        // Group meals by type
+        const groupedMeals: { [key: string]: FoodImage[] } = {
+          breakfast: mealsForDate.filter(m => m.mealType === 'breakfast'),
+          lunch: mealsForDate.filter(m => m.mealType === 'lunch'),
+          dinner: mealsForDate.filter(m => m.mealType === 'dinner'),
+        };
+        
+        updateMealImages(groupedMeals);
+      } catch (err) {
+        console.error('Failed to fetch meals:', err);
+        setError('Failed to load meals for this date');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMealsForDate();
+  }, [selectedDate, updateMealImages]); // Re-fetch when date changes
+
+  const meals: Array<{ type: 'breakfast' | 'lunch' | 'dinner'; label: string;  }> = [
+    { type: 'breakfast', label: 'Breakfast' },
+    { type: 'lunch', label: 'Lunch' },
+    { type: 'dinner', label: 'Dinner' },
   ];
 
   const handleAddImage = (mealType: 'breakfast' | 'lunch' | 'dinner') => {
@@ -33,18 +100,38 @@ export default function MealsSection({ selectedDate = new Date() }: MealsSection
   };
 
   const handleUploadSuccess = (newImage: FoodImage) => {
-    setMealImages(prev => ({
-      ...prev,
-      [selectedMealType]: [...(prev[selectedMealType] || []), newImage]
-    }));
+    // Add the new image to the appropriate meal type
+    const currentMeals = mealImages[selectedMealType] || [];
+    const updatedMeals = {
+      ...mealImages,
+      [selectedMealType]: [...currentMeals, newImage]
+    };
+    
+    if (onMealImagesChange) {
+      // Using external state
+      onMealImagesChange(updatedMeals);
+    } else {
+      // Using internal state
+      setInternalMealImages(updatedMeals);
+    }
+    
     setShowUploadModal(false);
   };
 
   const handleRemoveImage = (mealType: string, imageId: string) => {
-    setMealImages(prev => ({
-      ...prev,
-      [mealType]: prev[mealType]?.filter(img => img.id !== imageId) || []
-    }));
+    if (onMealImagesChange) {
+      // Using external state
+      onMealImagesChange({
+        ...mealImages,
+        [mealType]: mealImages[mealType]?.filter((img: FoodImage) => img.id !== imageId) || []
+      });
+    } else {
+      // Using internal state
+      setInternalMealImages(prev => ({
+        ...prev,
+        [mealType]: prev[mealType]?.filter((img: FoodImage) => img.id !== imageId) || []
+      }));
+    }
   };
 
   return (
@@ -55,13 +142,22 @@ export default function MealsSection({ selectedDate = new Date() }: MealsSection
             <h2 className="text-xl font-semibold text-gray-800">Today&apos;s Meals</h2>
             <div className="flex items-center gap-2 text-sm">
               <AlertTriangleIcon className="w-5 h-5 text-orange-500" />
-              <span className="text-gray-600">0 / 2008</span>
+              <span className="text-gray-600">
+                {Object.values(mealImages).flat().reduce((sum: number, img: FoodImage) => sum + (img.nutritionInfo?.calories || 0), 0)} / 2008
+              </span>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-              <RefreshIcon className="w-5 h-5 text-gray-600" />
+            <button 
+              onClick={() => {
+                // Re-fetch meals
+                window.location.reload();
+              }}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              disabled={loading}
+            >
+              <RefreshIcon className={`w-5 h-5 text-gray-600 ${loading ? 'animate-spin' : ''}`} />
             </button>
             <button className="text-gray-400 hover:text-gray-600 transition-colors">
               <MoreVerticalIcon className="w-6 h-6" />
@@ -69,13 +165,45 @@ export default function MealsSection({ selectedDate = new Date() }: MealsSection
           </div>
         </div>
 
-        <div className="space-y-6">
-          {meals.map((meal) => (
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {loading ? (
+          <div className="text-center py-8">
+            <svg
+              className="animate-spin h-8 w-8 text-orange-500 mx-auto mb-2"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+            <p className="text-gray-600 text-sm">Loading meals...</p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {meals.map((meal) => (
             <div key={meal.type} className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
               {/* Meal Header */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{meal.icon}</span>
                   <div>
                     <h3 className="font-semibold text-gray-800 text-lg">{meal.label}</h3>
                     <p className="text-sm text-gray-500">
@@ -139,20 +267,21 @@ export default function MealsSection({ selectedDate = new Date() }: MealsSection
                   <div className="flex items-center gap-2">
                     <span className="text-gray-500">Total Calories:</span>
                     <span className="font-semibold text-gray-800">
-                      {mealImages[meal.type].reduce((sum, img) => sum + (img.nutritionInfo?.calories || 0), 0)}
+                      {mealImages[meal.type].reduce((sum: number, img: FoodImage) => sum + (img.nutritionInfo?.calories || 0), 0)}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-gray-500">Protein:</span>
                     <span className="font-semibold text-gray-800">
-                      {mealImages[meal.type].reduce((sum, img) => sum + (img.nutritionInfo?.protein || 0), 0)}g
+                      {mealImages[meal.type].reduce((sum: number, img: FoodImage) => sum + (img.nutritionInfo?.protein || 0), 0)}g
                     </span>
                   </div>
                 </div>
               )}
             </div>
           ))}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Upload Modal */}

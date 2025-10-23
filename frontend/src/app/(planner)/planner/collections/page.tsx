@@ -7,93 +7,31 @@ import FilterBar from "@/app/components/collections/FilterBar";
 import ImageGrid from "@/app/components/collections/ImageGrid";
 import ImageDetailModal from "@/app/components/collections/ImageDetailModal";
 import NutritionAnalysisModal from "@/app/components/collections/NutritionAnalysisModal";
+import { getMealHistory, MealHistoryItem } from "@/lib/api/analysis.api";
 
-// Mock data để test UI
-const MOCK_IMAGES: FoodImage[] = [
-  {
-    id: '1',
-    imageUrl: 'https://images.eatthismuch.com/med/36640_elm333_3445f15a-841d-4f23-9353-e269b504d115.jpg',
-    date: '2025-10-22',
-    mealType: 'breakfast',
-    analyzed: true,
-    createdAt: '2025-10-22T08:00:00Z',
+// Transform API meal data to FoodImage format
+const transformMealToFoodImage = (meal: MealHistoryItem): FoodImage => {
+  return {
+    id: meal.id.toString(),
+    imageUrl: meal.image_url,
+    date: meal.meal_time ? meal.meal_time.split('T')[0] : new Date().toISOString().split('T')[0],
+    mealType: meal.meal_type,
+    analyzed: meal.analysis_status === 'completed',
+    createdAt: meal.created_at || new Date().toISOString(),
+    dishName: meal.meal_name,
     nutritionInfo: {
-      calories: 450,
-      protein: 20,
-      carbs: 55,
-      fat: 15,
-      fiber: 8,
-      sugar: 12,
-      sodium: 300,
-      foodItems: ['Eggs', 'Toast', 'Avocado', 'Tomatoes']
-    }
-  },
-  {
-    id: '2',
-    imageUrl: 'https://images.eatthismuch.com/med/36640_elm333_3445f15a-841d-4f23-9353-e269b504d115.jpg',
-    date: '2025-10-22',
-    mealType: 'lunch',
-    analyzed: true,
-    createdAt: '2025-10-22T12:30:00Z',
-    nutritionInfo: {
-      calories: 680,
-      protein: 35,
-      carbs: 75,
-      fat: 22,
-      fiber: 10,
-      foodItems: ['Chicken', 'Rice', 'Vegetables', 'Soup']
-    }
-  },
-  {
-    id: '3',
-    imageUrl: 'https://images.eatthismuch.com/med/36640_elm333_3445f15a-841d-4f23-9353-e269b504d115.jpg',
-    date: '2025-10-21',
-    mealType: 'dinner',
-    analyzed: false,
-    createdAt: '2025-10-21T19:00:00Z',
-  },
-  {
-    id: '4',
-    imageUrl: 'https://images.eatthismuch.com/med/36640_elm333_3445f15a-841d-4f23-9353-e269b504d115.jpg',
-    date: '2025-10-21',
-    mealType: 'snack',
-    analyzed: true,
-    createdAt: '2025-10-21T15:30:00Z',
-    nutritionInfo: {
-      calories: 250,
-      protein: 8,
-      carbs: 35,
-      fat: 10,
-      foodItems: ['Burger', 'French Fries']
-    }
-  },
-  {
-    id: '5',
-    imageUrl: 'https://images.eatthismuch.com/med/36640_elm333_3445f15a-841d-4f23-9353-e269b504d115.jpg',
-    date: '2025-10-20',
-    mealType: 'dinner',
-    analyzed: true,
-    createdAt: '2025-10-20T19:30:00Z',
-    nutritionInfo: {
-      calories: 720,
-      protein: 30,
-      carbs: 80,
-      fat: 25,
-      foodItems: ['Pizza', 'Salad']
-    }
-  },
-  {
-    id: '6',
-    imageUrl: 'https://images.eatthismuch.com/med/36640_elm333_3445f15a-841d-4f23-9353-e269b504d115.jpg',
-    date: '2025-10-20',
-    mealType: 'lunch',
-    analyzed: false,
-    createdAt: '2025-10-20T12:00:00Z',
-  },
-];
+      calories: meal.nutrition_summary.total_calories,
+      protein: meal.nutrition_summary.total_protein,
+      carbs: meal.nutrition_summary.total_carbs,
+      fat: meal.nutrition_summary.total_fat,
+      fiber: meal.nutrition_summary.total_fiber,
+      sodium: meal.nutrition_summary.total_sodium,
+    },
+  };
+};
 
 export default function CollectionsPage() {
-  const [images, setImages] = useState<FoodImage[]>(MOCK_IMAGES);
+  const [images, setImages] = useState<FoodImage[]>([]);
   const [filteredImages, setFilteredImages] = useState<FoodImage[]>([]);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState<FoodImage | null>(null);
@@ -102,6 +40,32 @@ export default function CollectionsPage() {
   const [filters, setFilters] = useState<FilterOptions>({
     mealType: 'all',
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>("");
+
+  // Fetch meals from API
+  useEffect(() => {
+    const fetchMeals = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        
+        const response = await getMealHistory({ limit: 100 });
+        const transformedImages = response.meals.map(transformMealToFoodImage);
+        console.log("transformedImages", transformedImages);
+        
+        
+        setImages(transformedImages); 
+      } catch (err) {
+        console.error("Failed to fetch meals:", err);
+        setError("Failed to load your meal history. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMeals();
+  }, []);
 
   const applyFilters = React.useCallback(() => {
     let filtered = [...images];
@@ -209,19 +173,79 @@ export default function CollectionsPage() {
           </button>
         </div>
 
-        {/* Filter Bar */}
-        <FilterBar
-          filters={filters}
-          onFilterChange={setFilters}
-          totalImages={filteredImages.length}
-          selectedCount={selectedImages.size}
-          onSelectAll={handleSelectAll}
-          onAnalyze={handleAnalyzeNutrition}
-        />
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-start gap-3">
+              <svg
+                className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-red-800">Error</h3>
+                <p className="text-sm text-red-700 mt-1">{error}</p>
+              </div>
+              <button
+                onClick={() => window.location.reload()}
+                className="text-sm text-red-600 hover:text-red-800 underline"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
 
-        {/* Image Grid */}
-        {filteredImages.length === 0 ? (
-          <div className="text-center py-16">
+        {/* Loading State */}
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <div className="text-center">
+              <svg
+                className="animate-spin h-12 w-12 text-orange-500 mx-auto mb-4"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              <p className="text-gray-600">Loading your meals...</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Filter Bar */}
+            <FilterBar
+              filters={filters}
+              onFilterChange={setFilters}
+              totalImages={filteredImages.length}
+              selectedCount={selectedImages.size}
+              onSelectAll={handleSelectAll}
+              onAnalyze={handleAnalyzeNutrition}
+            />
+
+            {/* Image Grid */}
+            {filteredImages.length === 0 ? (
+              <div className="text-center py-16">
             <svg
               className="w-24 h-24 mx-auto text-gray-300 mb-4"
               fill="none"
@@ -256,6 +280,8 @@ export default function CollectionsPage() {
             onSelectImage={handleSelectImage}
             onDeleteImage={handleDeleteImage}
           />
+        )}
+          </>
         )}
       </div>
 
