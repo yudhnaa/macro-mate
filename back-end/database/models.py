@@ -215,3 +215,16 @@ class NutritionAnalysisLogDB(Base):
 
     # Relationships
     meal = relationship("UserMealDB", back_populates="analysis_logs")
+
+
+
+class DirectionDB(Base):
+    __tablename__ = "direction"
+
+    id = Column(Integer, primary_key=True, index=True)
+    order = Column(Integer, nullable=False)
+    direction = Column(Text, nullable=False)
+    food_id = Column(Integer, ForeignKey("foods.id", ondelete="CASCADE"), nullable=False, index=True)
+    
+    # Relationship
+    food = relationship("FoodDB", back_populates="direction")
