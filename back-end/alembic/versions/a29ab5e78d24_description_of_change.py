@@ -1,8 +1,8 @@
-"""description of changes
+"""description of change
 
-Revision ID: a64c4524e3da
+Revision ID: a29ab5e78d24
 Revises: 
-Create Date: 2025-10-23 15:44:10.261063
+Create Date: 2025-10-23 17:44:12.666058
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'a64c4524e3da'
+revision: str = 'a29ab5e78d24'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -88,6 +88,16 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
     op.create_index(op.f('ix_users_id'), 'users', ['id'], unique=False)
+    op.create_table('direction',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('order', sa.Integer(), nullable=False),
+    sa.Column('direction', sa.Text(), nullable=False),
+    sa.Column('food_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['food_id'], ['foods.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_direction_food_id'), 'direction', ['food_id'], unique=False)
+    op.create_index(op.f('ix_direction_id'), 'direction', ['id'], unique=False)
     op.create_table('user_meals',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
@@ -95,7 +105,6 @@ def upgrade() -> None:
     sa.Column('meal_type', sa.Enum('BREAKFAST', 'LUNCH', 'DINNER', 'SNACK', name='meal_type_enum'), nullable=False),
     sa.Column('meal_time', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
     sa.Column('image_url', sa.Text(), nullable=True),
-    sa.Column('image_vector', pgvector.sqlalchemy.vector.VECTOR(dim=3072), nullable=True),
     sa.Column('analysis_status', sa.Enum('PENDING', 'SUCCESS', 'FAILED', name='analysis_status_enum'), nullable=False),
     sa.Column('total_calories', sa.Float(), nullable=True),
     sa.Column('total_protein', sa.Float(), nullable=True),
@@ -154,6 +163,9 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_user_meals_user_id'), table_name='user_meals')
     op.drop_index(op.f('ix_user_meals_id'), table_name='user_meals')
     op.drop_table('user_meals')
+    op.drop_index(op.f('ix_direction_id'), table_name='direction')
+    op.drop_index(op.f('ix_direction_food_id'), table_name='direction')
+    op.drop_table('direction')
     op.drop_index(op.f('ix_users_id'), table_name='users')
     op.drop_index(op.f('ix_users_email'), table_name='users')
     op.drop_table('users')

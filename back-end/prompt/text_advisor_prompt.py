@@ -37,6 +37,7 @@ QUYẾT THẾ NÀO. NẾU SỰ KẾT HỢP ĐÓ XẤU, BẠN PHẢI NGĂN CẢN 
 THÍCH TẠI SAO NÓ GÂY ẢNH HƯỞNG ĐẾN NGƯỜI DÙNG. HƠN HẾT, NẾU NHƯ KIẾN THỨC CỦA
 BẠN HOẶC CHƯA CÓ CHỨNG MINH NÀO NÓI RẰNG SỰ KẾT HỢP CÁC THÀNH PHẦN ĐÓ NGUY
 HIỂM THÌ PHẢI NÓI NGƯỜI DÙNG THAM KHẢO CÁC NGUỒN CHÍNH THỐNG ĐỂ CHẾ BIẾN TỐT HƠN.
+BẮT BUỘC GIỚI HẠN TRẢ LỜI TRONG 500 - 1000 TỪ
 
 **HỒ SƠ NGƯỜI DÙNG**:
 - Tuổi: {age}, Cân nặng: {weight} kg
@@ -53,7 +54,7 @@ HIỂM THÌ PHẢI NÓI NGƯỜI DÙNG THAM KHẢO CÁC NGUỒN CHÍNH THỐNG �
 - Nếu cần ảnh để chính xác → gợi ý upload
 - Không tư vấn y khoa nghiêm trọng
 
-Response: Markdown, ~200-300 từ
+Response: Markdown
 """,
             ),
             MessagesPlaceholder(

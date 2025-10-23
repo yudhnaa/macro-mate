@@ -9,7 +9,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     SECRET_KEY: str = "your-secret-key-here-change-in-production"
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080  # 7 days (7 * 24 * 60)
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 7 * 24 * 60  # 7 days (7 * 24 * 60)
 
     # Database settings
     DATABASE_HOST: str = "localhost"

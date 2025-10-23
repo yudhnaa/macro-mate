@@ -8,8 +8,10 @@ from langchain_core.messages import AIMessage, AIMessageChunk, BaseMessage
 from langchain_core.outputs import ChatGeneration, ChatGenerationChunk, ChatResult
 from models.base.base_llm import BaseReasoningModel
 from pydantic import PrivateAttr
-
+from utils.logger import setup_logger
 load_dotenv()
+
+logger = setup_logger(__name__)
 
 
 class Gemini(BaseReasoningModel):
@@ -118,6 +120,7 @@ class Gemini(BaseReasoningModel):
                         run_manager.on_llm_new_token(text_content)
 
         except Exception as e:
+            logger.info(f"LLM ERROR {e}")
             raise ValueError(f"Gemini streaming error: {str(e)}")
 
     def _convert_messages_to_prompt(self, messages: List[BaseMessage]) -> str:
