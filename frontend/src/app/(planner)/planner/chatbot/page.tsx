@@ -3,14 +3,15 @@
 import React, { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import axiosInstance from "@/lib/api/axios";
 
 export default function ChatbotPage() {
   const [messages, setMessages] = useState<
-    Array<{ 
-      role: "user" | "assistant"; 
-      content: string; 
+    Array<{
+      role: "user" | "assistant";
+      content: string;
       timestamp: Date;
-      imageUrl?: string; 
+      imageUrl?: string;
     }>
   >([
     {
@@ -98,18 +99,16 @@ export default function ChatbotPage() {
       const formData = new FormData();
       formData.append("thread_id", threadId);
       formData.append("user_query", currentQuery);
-      
+
       if (currentImageFile) {
         formData.append("img_file", currentImageFile);
       }
 
-      const response = await fetch("http://127.0.0.1:8000/advice/stream", {
-        method: "POST",
+      const response = axiosInstance.post("/advice/stream", formData, {
+        responseType: "stream",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
-          // Không set Content-Type, để browser tự động set với boundary
+          // 'Content-Type' will be set automatically by axios for FormData
         },
-        body: formData,
       });
 
       // Reset image sau khi gửi
@@ -340,7 +339,7 @@ export default function ChatbotPage() {
                       />
                     </div>
                   )}
-                  
+
                   <div className="text-sm leading-relaxed markdown-content">
                     {message.role === "assistant" ? (
                       <ReactMarkdown
