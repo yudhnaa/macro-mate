@@ -38,13 +38,13 @@ export default function PlannerPage() {
   }, [mealImages]);
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-4 lg:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Date Navigator */}
         <DateNavigator onDateChange={handleDateChange} />
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
           {/* Meals Section - Takes 2 columns */}
           <div className="lg:col-span-2">
             <MealsSection 
@@ -61,17 +61,17 @@ export default function PlannerPage() {
         </div>
 
         {/* Bottom Navigation */}
-        <div className="mt-6 flex justify-between items-center">
+        <div className="mt-4 lg:mt-6 flex justify-between items-center gap-2">
           <button 
             onClick={() => {
               const prevDate = new Date(selectedDate);
               prevDate.setDate(prevDate.getDate() - 1);
               handleDateChange(prevDate);
             }}
-            className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-sm sm:text-base"
           >
             <svg
-              className="w-5 h-5"
+              className="w-4 h-4 sm:w-5 sm:h-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -83,7 +83,8 @@ export default function PlannerPage() {
                 d="M15 19l-7-7 7-7"
               />
             </svg>
-            <span>Previous Day</span>
+            <span className="hidden sm:inline">Previous Day</span>
+            <span className="sm:hidden">Previous</span>
           </button>
 
           <button 
@@ -92,11 +93,12 @@ export default function PlannerPage() {
               nextDate.setDate(nextDate.getDate() + 1);
               handleDateChange(nextDate);
             }}
-            className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-sm sm:text-base"
           >
-            <span>Next Day</span>
+            <span className="hidden sm:inline">Next Day</span>
+            <span className="sm:hidden">Next</span>
             <svg
-              className="w-5 h-5"
+              className="w-4 h-4 sm:w-5 sm:h-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

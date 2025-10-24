@@ -9,6 +9,7 @@ import Logo from "../icon/Logo";
 import ProfileIcon from "../icon/ProfileIcon";
 import { useAppSelector } from "@/app/store/hooks";
 import { useClickOutside } from "@/app/hooks/useClickOutside";
+import toast from "react-hot-toast";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -21,6 +22,10 @@ export default function Header() {
   useClickOutside(profileMenuRef, () => setIsProfileMenuOpen(false));
 
   const handleNavigation = (path: string) => {
+    // Show toast for logout
+    if (path === "/logout") {
+      toast.success("Logged out successfully. See you soon!");
+    }
     NProgress.start();
     router.push(path);
     setIsMobileMenuOpen(false);

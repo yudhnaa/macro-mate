@@ -92,31 +92,60 @@ export default function DiscoverPage() {
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          {/* Left side - Menu and Dark mode */}
-          <div className="flex items-center gap-3">
-            <button className="p-2 rounded-lg hover:bg-gray-100">
-              <MenuIcon className="w-6 h-6 text-gray-600" />
-            </button>
-            <button className="p-2 rounded-lg hover:bg-gray-100">
-              <MoonIcon className="w-6 h-6 text-gray-600" />
-            </button>
+      <header className="bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+          {/* Mobile: Top Row - Menu, Dark mode, and View Toggle */}
+          <div className="flex items-center justify-between w-full sm:w-auto">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100">
+                <MenuIcon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
+              </button>
+              <button className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100">
+                <MoonIcon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
+              </button>
+            </div>
+
+            {/* View Toggle - moved to top right on mobile */}
+            <div className="flex sm:hidden items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-1.5 rounded ${
+                  viewMode === 'grid'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <GridIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-1.5 rounded ${
+                  viewMode === 'list'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <MenuIcon className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Center - Filter and Tabs */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto overflow-x-auto scrollbar-hide">
             {/* Filter Button */}
-            <button className="flex items-center gap-2 px-4 py-2 border-2 border-orange-500 text-orange-500 rounded-full hover:bg-orange-50 transition-colors">
-              <FilterIcon className="w-5 h-5" />
-              <span className="font-medium">Filters (1)</span>
+            <button className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 border-2 border-orange-500 text-orange-500 rounded-full hover:bg-orange-50 transition-colors text-sm whitespace-nowrap">
+              <FilterIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="font-medium">
+                <span className="hidden xs:inline">Filters (1)</span>
+                <span className="xs:hidden">(1)</span>
+              </span>
             </button>
 
             {/* Tabs */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <button
                 onClick={() => setActiveTab('my-food')}
-                className={`px-6 py-2 rounded-full font-medium transition-colors ${
+                className={`px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
                   activeTab === 'my-food'
                     ? 'bg-orange-500 text-white'
                     : 'text-gray-600 hover:bg-gray-100'
@@ -126,33 +155,34 @@ export default function DiscoverPage() {
               </button>
               <button
                 onClick={() => setActiveTab('my-collections')}
-                className={`px-6 py-2 rounded-full font-medium transition-colors ${
+                className={`px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
                   activeTab === 'my-collections'
                     ? 'bg-orange-500 text-white'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                My Collections
+                <span className="hidden sm:inline">My Collections</span>
+                <span className="sm:hidden">Collections</span>
               </button>
             </div>
           </div>
 
           {/* Right side - Search and View Toggle */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
             {/* Search */}
-            <div className="relative">
+            <div className="relative flex-1 sm:flex-none">
               <input
                 type="text"
                 placeholder="Search Foods..."
                 value={searchQuery}
                 onChange={handleSearch}
-                className="w-80 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full sm:w-64 lg:w-80 pl-9 sm:pl-10 pr-3 sm:pr-4 py-1.5 sm:py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
-              <SearchIcon className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <SearchIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2" />
             </div>
 
-            {/* View Toggle */}
-            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+            {/* View Toggle - desktop only */}
+            <div className="hidden sm:flex items-center gap-1 bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setViewMode('grid')}
                 className={`p-2 rounded ${
@@ -180,13 +210,13 @@ export default function DiscoverPage() {
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-[1600px] mx-auto p-6">
+        <div className="max-w-[1600px] mx-auto p-3 sm:p-6">
           {/* Results Header */}
-          <div className="flex items-center gap-2 mb-6">
-            <h2 className="text-2xl font-semibold text-gray-800">
+          <div className="flex items-center gap-2 mb-4 sm:mb-6">
+            <h2 className="text-lg sm:text-2xl font-semibold text-gray-800">
               Results ({foods.length} foods)
             </h2>
-            <ChevronDownIcon className="w-6 h-6 text-gray-400" />
+            <ChevronDownIcon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
           </div>
 
           {/* Loading State */}
@@ -198,13 +228,13 @@ export default function DiscoverPage() {
 
           {/* Error State */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg mb-4 sm:mb-6 text-sm">
               {error}
             </div>
           )}
 
           {/* Food Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-6">
             {foods.map((food) => (
               <div
                 key={food.id}
@@ -212,7 +242,7 @@ export default function DiscoverPage() {
                 className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
               >
                 {/* Food Image */}
-                <div className="relative h-48 bg-gray-200">
+                <div className="relative h-40 sm:h-48 bg-gray-200">
                   {food.image_url ? (
                     <Image
                       src={food.image_url}
@@ -223,19 +253,19 @@ export default function DiscoverPage() {
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                      <ImageIcon className="w-20 h-20" />
+                      <ImageIcon className="w-16 h-16 sm:w-20 sm:h-20" />
                     </div>
                   )}
                 </div>
 
                 {/* Food Info */}
-                <div className="p-4">
-                  <h3 className="font-semibold text-gray-800 mb-2 group-hover:text-orange-600 transition-colors line-clamp-2">
+                <div className="p-3 sm:p-4">
+                  <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-1.5 sm:mb-2 group-hover:text-orange-600 transition-colors line-clamp-2">
                     {food.name}
                   </h3>
 
                   {/* Meal Type Tags */}
-                  <div className="flex flex-wrap gap-1 mb-2">
+                  <div className="flex flex-wrap gap-1 mb-1.5 sm:mb-2">
                     {food.is_breakfast && (
                       <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded">
                         Breakfast
@@ -283,18 +313,18 @@ export default function DiscoverPage() {
 
           {/* Empty State */}
           {!loading && foods.length === 0 && !error && (
-            <div className="text-center py-20">
-              <p className="text-gray-500 text-lg">No foods found</p>
-              <p className="text-gray-400 text-sm mt-2">Try adjusting your search or filters</p>
+            <div className="text-center py-12 sm:py-20">
+              <p className="text-gray-500 text-base sm:text-lg">No foods found</p>
+              <p className="text-gray-400 text-xs sm:text-sm mt-2">Try adjusting your search or filters</p>
             </div>
           )}
 
           {/* Load More Button */}
           {!loading && hasMore && foods.length > 0 && (
-            <div className="flex justify-center mt-8 mb-8">
+            <div className="flex justify-center mt-6 sm:mt-8 mb-6 sm:mb-8">
               <button
                 onClick={handleLoadMore}
-                className="px-8 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium shadow-md hover:shadow-lg"
+                className="px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-base bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium shadow-md hover:shadow-lg"
               >
                 See More
               </button>
@@ -303,7 +333,7 @@ export default function DiscoverPage() {
 
           {/* Loading More Indicator */}
           {loading && foods.length > 0 && (
-            <div className="flex justify-center mt-8 mb-8">
+            <div className="flex justify-center mt-6 sm:mt-8 mb-6 sm:mb-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
             </div>
           )}
