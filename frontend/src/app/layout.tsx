@@ -6,6 +6,7 @@ import ProgressBar from "./components/common/ProgressBar";
 import { Suspense } from "react";
 import { ReduxProvider } from "./store/ReduxProvider";
 import { AuthProvider } from "./components/auth/AuthProvider";
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,6 +36,36 @@ export default function RootLayout({
       >
         <ReduxProvider>
           <AuthProvider>
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 3000,
+                style: {
+                  background: '#fff',
+                  color: '#363636',
+                },
+                success: {
+                  style: {
+                    background: '#10b981',
+                    color: '#fff',
+                  },
+                  iconTheme: {
+                    primary: '#fff',
+                    secondary: '#10b981',
+                  },
+                },
+                error: {
+                  style: {
+                    background: '#ef4444',
+                    color: '#fff',
+                  },
+                  iconTheme: {
+                    primary: '#fff',
+                    secondary: '#ef4444',
+                  },
+                },
+              }}
+            />
             <Suspense fallback={null}>
               <ProgressBar />
             </Suspense>

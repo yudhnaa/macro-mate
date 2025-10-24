@@ -142,22 +142,22 @@ export default function CollectionsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Food Collections</h1>
-            <p className="text-gray-600 mt-1">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Food Collections</h1>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">
               Track and analyze your meals with photos
             </p>
           </div>
           <button
             onClick={() => setShowUploadModal(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors shadow-md"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors shadow-md text-sm sm:text-base"
           >
             <svg
-              className="w-5 h-5"
+              className="w-4 h-4 sm:w-5 sm:h-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -175,10 +175,10 @@ export default function CollectionsPage() {
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div className="flex items-start gap-3">
+          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-start gap-2 sm:gap-3">
               <svg
-                className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0"
+                className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 mt-0.5 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -191,12 +191,12 @@ export default function CollectionsPage() {
                 />
               </svg>
               <div className="flex-1">
-                <h3 className="text-sm font-medium text-red-800">Error</h3>
-                <p className="text-sm text-red-700 mt-1">{error}</p>
+                <h3 className="text-xs sm:text-sm font-medium text-red-800">Error</h3>
+                <p className="text-xs sm:text-sm text-red-700 mt-1">{error}</p>
               </div>
               <button
                 onClick={() => window.location.reload()}
-                className="text-sm text-red-600 hover:text-red-800 underline"
+                className="text-xs sm:text-sm text-red-600 hover:text-red-800 underline whitespace-nowrap"
               >
                 Retry
               </button>
@@ -206,10 +206,10 @@ export default function CollectionsPage() {
 
         {/* Loading State */}
         {loading ? (
-          <div className="flex items-center justify-center py-16">
+          <div className="flex items-center justify-center py-12 sm:py-16">
             <div className="text-center">
               <svg
-                className="animate-spin h-12 w-12 text-orange-500 mx-auto mb-4"
+                className="animate-spin h-10 w-10 sm:h-12 sm:w-12 text-orange-500 mx-auto mb-3 sm:mb-4"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -228,7 +228,7 @@ export default function CollectionsPage() {
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 />
               </svg>
-              <p className="text-gray-600">Loading your meals...</p>
+              <p className="text-sm sm:text-base text-gray-600">Loading your meals...</p>
             </div>
           </div>
         ) : (
@@ -245,9 +245,9 @@ export default function CollectionsPage() {
 
             {/* Image Grid */}
             {filteredImages.length === 0 ? (
-              <div className="text-center py-16">
+              <div className="text-center py-12 sm:py-16">
             <svg
-              className="w-24 h-24 mx-auto text-gray-300 mb-4"
+              className="w-20 h-20 sm:w-24 sm:h-24 mx-auto text-gray-300 mb-3 sm:mb-4"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -259,15 +259,15 @@ export default function CollectionsPage() {
                 d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
               />
             </svg>
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">
               No images found
             </h3>
-            <p className="text-gray-500 mb-4">
+            <p className="text-sm sm:text-base text-gray-500 mb-3 sm:mb-4 px-4">
               Try adjusting your filters or upload a new meal photo
             </p>
             <button
               onClick={() => setShowUploadModal(true)}
-              className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+              className="px-4 sm:px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm sm:text-base"
             >
               Upload Image
             </button>

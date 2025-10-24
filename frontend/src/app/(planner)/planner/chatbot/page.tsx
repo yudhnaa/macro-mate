@@ -234,23 +234,23 @@ export default function ChatbotPage() {
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">
+      <div className="bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4">
+        <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg sm:text-2xl font-bold text-gray-800 truncate">
               Macro Mate Assistant
             </h1>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-xs sm:text-sm text-gray-600 mt-0.5 sm:mt-1 truncate">
               Your personal nutrition and meal planning assistant
             </p>
           </div>
           <button
             onClick={handleNewChat}
-            className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2"
+            className="flex-shrink-0 px-3 sm:px-4 py-2 sm:py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-1.5 sm:gap-2 text-sm"
             title="Start a new chat"
           >
             <svg
-              className="w-5 h-5"
+              className="w-4 h-4 sm:w-5 sm:h-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -262,14 +262,15 @@ export default function ChatbotPage() {
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            <span>New Chat</span>
+            <span className="hidden xs:inline">New Chat</span>
+            <span className="xs:hidden">New</span>
           </button>
         </div>
       </div>
 
       {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto px-6 py-6">
-        <div className="max-w-4xl mx-auto space-y-4">
+      <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 sm:py-6">
+        <div className="max-w-4xl mx-auto space-y-3 sm:space-y-4">
           {messages.map((message, index) => (
             <div
               key={index}
@@ -278,13 +279,13 @@ export default function ChatbotPage() {
               }`}
             >
               <div
-                className={`flex gap-3 max-w-[80%] ${
+                className={`flex gap-2 sm:gap-3 max-w-[85%] sm:max-w-[80%] ${
                   message.role === "user" ? "flex-row-reverse" : "flex-row"
                 }`}
               >
                 {/* Avatar */}
                 <div
-                  className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                  className={`flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ${
                     message.role === "user"
                       ? "bg-orange-500 text-white"
                       : "bg-blue-500 text-white"
@@ -292,7 +293,7 @@ export default function ChatbotPage() {
                 >
                   {message.role === "user" ? (
                     <svg
-                      className="w-6 h-6"
+                      className="w-4 h-4 sm:w-6 sm:h-6"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -306,7 +307,7 @@ export default function ChatbotPage() {
                     </svg>
                   ) : (
                     <svg
-                      className="w-6 h-6"
+                      className="w-4 h-4 sm:w-6 sm:h-6"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -323,7 +324,7 @@ export default function ChatbotPage() {
 
                 {/* Message Content */}
                 <div
-                  className={`rounded-lg px-4 py-3 ${
+                  className={`rounded-lg px-3 sm:px-4 py-2 sm:py-3 ${
                     message.role === "user"
                       ? "bg-orange-500 text-white"
                       : "bg-white border border-gray-200 text-gray-800"
@@ -336,12 +337,12 @@ export default function ChatbotPage() {
                       <img
                         src={message.imageUrl}
                         alt="Uploaded"
-                        className="max-w-full max-h-64 rounded-lg"
+                        className="max-w-full max-h-48 sm:max-h-64 rounded-lg"
                       />
                     </div>
                   )}
                   
-                  <div className="text-sm leading-relaxed markdown-content">
+                  <div className="text-xs sm:text-sm leading-relaxed markdown-content">
                     {message.role === "assistant" ? (
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
@@ -410,10 +411,10 @@ export default function ChatbotPage() {
           {/* Typing Indicator */}
           {isTyping && (
             <div className="flex justify-start">
-              <div className="flex gap-3">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center">
+              <div className="flex gap-2 sm:gap-3">
+                <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-500 text-white flex items-center justify-center">
                   <svg
-                    className="w-6 h-6"
+                    className="w-4 h-4 sm:w-6 sm:h-6"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -426,15 +427,15 @@ export default function ChatbotPage() {
                     />
                   </svg>
                 </div>
-                <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
+                <div className="bg-white border border-gray-200 rounded-lg px-3 sm:px-4 py-2 sm:py-3">
                   <div className="flex gap-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gray-400 rounded-full animate-bounce"></div>
                     <div
-                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                      className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gray-400 rounded-full animate-bounce"
                       style={{ animationDelay: "0.2s" }}
                     ></div>
                     <div
-                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                      className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gray-400 rounded-full animate-bounce"
                       style={{ animationDelay: "0.4s" }}
                     ></div>
                   </div>
@@ -449,15 +450,15 @@ export default function ChatbotPage() {
 
       {/* Quick Actions */}
       {messages.length <= 1 && (
-        <div className="px-6 pb-4">
+        <div className="px-3 sm:px-6 pb-3 sm:pb-4">
           <div className="max-w-4xl mx-auto">
-            <p className="text-sm text-gray-600 mb-3">Quick actions:</p>
-            <div className="flex flex-wrap gap-2">
+            <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">Quick actions:</p>
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {quickActions.map((action, index) => (
                 <button
                   key={index}
                   onClick={() => setInputMessage(action)}
-                  className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-700 hover:border-orange-500 hover:text-orange-500 transition-colors"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white border border-gray-200 rounded-full text-xs sm:text-sm text-gray-700 hover:border-orange-500 hover:text-orange-500 transition-colors"
                 >
                   {action}
                 </button>
@@ -468,28 +469,28 @@ export default function ChatbotPage() {
       )}
 
       {/* Input Area */}
-      <div className="bg-white border-t border-gray-200 px-6 py-4">
+      <div className="bg-white border-t border-gray-200 px-3 sm:px-6 py-3 sm:py-4">
         <div className="max-w-4xl mx-auto">
           {/* Image Preview */}
           {selectedImage && (
-            <div className="mb-3 relative inline-block">
+            <div className="mb-2 sm:mb-3 relative inline-block">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={selectedImage}
                 alt="Selected"
-                className="max-h-32 rounded-lg border border-gray-300"
+                className="max-h-24 sm:max-h-32 rounded-lg border border-gray-300"
               />
               <button
                 type="button"
                 onClick={handleRemoveImage}
-                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 bg-red-500 text-white rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center hover:bg-red-600 text-sm"
               >
                 ×
               </button>
             </div>
           )}
 
-          <form onSubmit={handleSendMessage} className="flex gap-3">
+          <form onSubmit={handleSendMessage} className="flex gap-2 sm:gap-3">
             {/* Hidden File Input */}
             <input
               ref={fileInputRef}
@@ -504,11 +505,11 @@ export default function ChatbotPage() {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isTyping}
-              className="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+              className="flex-shrink-0 px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
               title="Upload image"
             >
               <svg
-                className="w-5 h-5 text-gray-600"
+                className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -527,17 +528,17 @@ export default function ChatbotPage() {
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               placeholder="Ask me anything about nutrition, meals, or your diet..."
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className="flex-1 px-3 sm:px-4 py-2 sm:py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               disabled={isTyping}
             />
             <button
               type="submit"
               disabled={isTyping || (!inputMessage.trim() && !imageFile)}
-              className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+              className="flex-shrink-0 px-3 sm:px-6 py-2 sm:py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5 sm:gap-2 text-sm"
             >
-              <span>Send</span>
+              <span className="hidden xs:inline">Send</span>
               <svg
-                className="w-5 h-5"
+                className="w-4 h-4 sm:w-5 sm:h-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -551,7 +552,7 @@ export default function ChatbotPage() {
               </svg>
             </button>
           </form>
-          <p className="text-xs text-gray-500 mt-2 text-center">
+          <p className="text-xs text-gray-500 mt-1.5 sm:mt-2 text-center">
             Macro Mate AI can make mistakes. Please verify important
             information.
           </p>
