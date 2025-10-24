@@ -325,85 +325,87 @@ export default function ChatbotPage() {
                 </div>
 
                 {/* Message Content */}
-                <div
-                  className={`rounded-lg px-3 sm:px-4 py-2 sm:py-3 ${
-                    message.role === "user"
-                      ? "bg-orange-500 text-white"
-                      : "bg-white border border-gray-200 text-gray-800"
-                  }`}
-                >
+                <div className="rounded-lg overflow-hidden">
                   {/* Hiển thị ảnh nếu có */}
                   {message.imageUrl && (
-                    <div className="mb-2">
+                    <div className="mb-0">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={message.imageUrl}
                         alt="Uploaded"
-                        className="max-w-full max-h-48 sm:max-h-64 rounded-lg"
+                        className="max-w-full max-h-48 sm:max-h-64 rounded-t-lg"
                       />
                     </div>
                   )}
                   
-                  <div className="text-xs sm:text-sm leading-relaxed markdown-content">
-                    {message.role === "assistant" ? (
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          h2: ({ children }) => (
-                            <h2 className="text-base font-bold mb-2 mt-3 text-gray-800">
-                              {children}
-                            </h2>
-                          ),
-                          h3: ({ children }) => (
-                            <h3 className="text-sm font-semibold mb-1 mt-2 text-gray-700">
-                              {children}
-                            </h3>
-                          ),
-                          p: ({ children }) => (
-                            <p className="my-1 text-gray-700">{children}</p>
-                          ),
-                          ul: ({ children }) => (
-                            <ul className="my-1 ml-4 list-disc space-y-0.5">
-                              {children}
-                            </ul>
-                          ),
-                          ol: ({ children }) => (
-                            <ol className="my-1 ml-4 list-decimal space-y-0.5">
-                              {children}
-                            </ol>
-                          ),
-                          li: ({ children }) => (
-                            <li className="text-gray-700">{children}</li>
-                          ),
-                          strong: ({ children }) => (
-                            <strong className="font-semibold text-gray-900">
-                              {children}
-                            </strong>
-                          ),
-                          code: ({ children }) => (
-                            <code className="bg-gray-100 px-1 py-0.5 rounded text-xs">
-                              {children}
-                            </code>
-                          ),
-                        }}
-                      >
-                        {message.content}
-                      </ReactMarkdown>
-                    ) : (
-                      <div className="whitespace-pre-wrap">{message.content}</div>
-                    )}
-                  </div>
-                  <p
-                    className={`text-xs mt-2 ${message.role === "user"
-                      ? "text-orange-100"
-                      : "text-gray-500"
-                      }`}
+                  <div
+                    className={`px-3 sm:px-4 py-2 sm:py-3 ${
+                      message.role === "user"
+                        ? "bg-orange-500 text-white"
+                        : "bg-white border border-gray-200 text-gray-800"
+                    } ${message.imageUrl ? "rounded-t-none rounded-b-lg" : "rounded-lg"}`}
                   >
-                    {message.timestamp.toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
+                    <div className="text-xs sm:text-sm leading-relaxed markdown-content">
+                      {message.role === "assistant" ? (
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            h2: ({ children }) => (
+                              <h2 className="text-base font-bold mb-2 mt-3 text-gray-800">
+                                {children}
+                              </h2>
+                            ),
+                            h3: ({ children }) => (
+                              <h3 className="text-sm font-semibold mb-1 mt-2 text-gray-700">
+                                {children}
+                              </h3>
+                            ),
+                            p: ({ children }) => (
+                              <p className="my-1 text-gray-700">{children}</p>
+                            ),
+                            ul: ({ children }) => (
+                              <ul className="my-1 ml-4 list-disc space-y-0.5">
+                                {children}
+                              </ul>
+                            ),
+                            ol: ({ children }) => (
+                              <ol className="my-1 ml-4 list-decimal space-y-0.5">
+                                {children}
+                              </ol>
+                            ),
+                            li: ({ children }) => (
+                              <li className="text-gray-700">{children}</li>
+                            ),
+                            strong: ({ children }) => (
+                              <strong className="font-semibold text-gray-900">
+                                {children}
+                              </strong>
+                            ),
+                            code: ({ children }) => (
+                              <code className="bg-gray-100 px-1 py-0.5 rounded text-xs">
+                                {children}
+                              </code>
+                            ),
+                          }}
+                        >
+                          {message.content}
+                        </ReactMarkdown>
+                      ) : (
+                        <div className="whitespace-pre-wrap">{message.content}</div>
+                      )}
+                    </div>
+                    <p
+                      className={`text-xs mt-2 ${message.role === "user"
+                        ? "text-orange-100"
+                        : "text-gray-500"
+                        }`}
+                    >
+                      {message.timestamp.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
