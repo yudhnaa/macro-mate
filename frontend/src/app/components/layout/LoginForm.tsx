@@ -10,6 +10,7 @@ import GoogleIcon from "../icon/GoogleIcon";
 import GithubIcon from "../icon/GithubIcon";
 import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
 import { loginUser, clearError } from "@/app/features/auth/authSlice";
+import toast from "react-hot-toast";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -37,7 +38,8 @@ export default function LoginForm() {
 
     try {
       await dispatch(loginUser({ email, password })).unwrap();
-      // Success - will redirect via useEffect
+      // Success - show toast and redirect
+      toast.success("Login successful! Welcome back!");
     } catch (err) {
       // Error is handled by Redux slice
       console.error("Login failed:", err);
