@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import axiosInstance from "@/lib/api/axios";
 
 export default function ChatbotPage() {
   const [messages, setMessages] = useState<
@@ -91,7 +90,6 @@ export default function ChatbotPage() {
     ]);
 
     try {
-      // const accessToken = localStorage.getItem("token");
       // Lấy thread_id từ localStorage (nếu có)
       const threadId = localStorage.getItem("chatbot_thread_id") || "";
 
@@ -104,17 +102,23 @@ export default function ChatbotPage() {
         formData.append("img_file", currentImageFile);
       }
 
-      const response = axiosInstance.post("/advice/stream", formData, {
-        responseType: "stream",
-        headers: {
-          // 'Content-Type' will be set automatically by axios for FormData
-        },
-      });
-
       // Reset image sau khi gửi
       if (currentImageFile) {
         handleRemoveImage();
       }
+
+      // Use fetch for streaming instead of axios
+      const accessToken = localStorage.getItem("token");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/advice/stream`,
+        {
+          method: "POST",
+          headers: {
+            ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+          },
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to fetch response");
