@@ -6,11 +6,11 @@ import remarkGfm from "remark-gfm";
 
 export default function ChatbotPage() {
   const [messages, setMessages] = useState<
-    Array<{ 
-      role: "user" | "assistant"; 
-      content: string; 
+    Array<{
+      role: "user" | "assistant";
+      content: string;
       timestamp: Date;
-      imageUrl?: string; 
+      imageUrl?: string;
     }>
   >([
     {
@@ -90,7 +90,6 @@ export default function ChatbotPage() {
     ]);
 
     try {
-      const accessToken = localStorage.getItem("token");
       // Lấy thread_id từ localStorage (nếu có)
       const threadId = localStorage.getItem("chatbot_thread_id") || "";
 
@@ -98,24 +97,28 @@ export default function ChatbotPage() {
       const formData = new FormData();
       formData.append("thread_id", threadId);
       formData.append("user_query", currentQuery);
-      
+
       if (currentImageFile) {
         formData.append("img_file", currentImageFile);
       }
-
-      const response = await fetch("http://127.0.0.1:8000/advice/stream", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          // Không set Content-Type, để browser tự động set với boundary
-        },
-        body: formData,
-      });
 
       // Reset image sau khi gửi
       if (currentImageFile) {
         handleRemoveImage();
       }
+
+      // Use fetch for streaming instead of axios
+      const accessToken = localStorage.getItem("token");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/advice/stream`,
+        {
+          method: "POST",
+          headers: {
+            ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+          },
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to fetch response");
@@ -274,9 +277,8 @@ export default function ChatbotPage() {
           {messages.map((message, index) => (
             <div
               key={index}
-              className={`flex ${
-                message.role === "user" ? "justify-end" : "justify-start"
-              }`}
+              className={`flex ${message.role === "user" ? "justify-end" : "justify-start"
+                }`}
             >
               <div
                 className={`flex gap-2 sm:gap-3 max-w-[85%] sm:max-w-[80%] ${
@@ -392,11 +394,10 @@ export default function ChatbotPage() {
                     )}
                   </div>
                   <p
-                    className={`text-xs mt-2 ${
-                      message.role === "user"
-                        ? "text-orange-100"
-                        : "text-gray-500"
-                    }`}
+                    className={`text-xs mt-2 ${message.role === "user"
+                      ? "text-orange-100"
+                      : "text-gray-500"
+                      }`}
                   >
                     {message.timestamp.toLocaleTimeString([], {
                       hour: "2-digit",
