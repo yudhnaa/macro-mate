@@ -22,7 +22,10 @@ interface PlannerSidebarProps {
   onClose: () => void;
 }
 
-export default function PlannerSidebar({ isOpen, onClose }: PlannerSidebarProps) {
+export default function PlannerSidebar({
+  isOpen,
+  onClose,
+}: PlannerSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -137,31 +140,33 @@ export default function PlannerSidebar({ isOpen, onClose }: PlannerSidebarProps)
   ];
 
   return (
-    <aside 
+    <aside
       className={`
-        ${isCollapsed ? 'w-20' : 'w-72'} 
+        ${isCollapsed ? "w-20" : "w-72"} 
         bg-white border-r border-gray-200 flex flex-col h-screen overflow-y-auto
         fixed lg:static inset-y-0 left-0 z-50
         transform transition-all duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         scrollbar-hide
       `}
       style={{
-        scrollbarWidth: 'none',
-        msOverflowStyle: 'none',
+        scrollbarWidth: "none",
+        msOverflowStyle: "none",
       }}
     >
       {/* Header */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between mb-4">
           {/* Collapse/Expand Button for Desktop */}
-          <button 
+          <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className="p-2 rounded-lg hover:bg-gray-100 hidden lg:block"
             title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             <svg
-              className={`w-6 h-6 text-gray-600 transition-transform ${isCollapsed ? 'rotate-180' : ''}`}
+              className={`w-6 h-6 text-gray-600 transition-transform ${
+                isCollapsed ? "rotate-180" : ""
+              }`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -176,7 +181,7 @@ export default function PlannerSidebar({ isOpen, onClose }: PlannerSidebarProps)
           </button>
 
           {/* Close Button for Mobile */}
-          <button 
+          <button
             onClick={onClose}
             className="p-2 rounded-lg hover:bg-gray-100 lg:hidden"
             title="Close menu"
@@ -219,11 +224,13 @@ export default function PlannerSidebar({ isOpen, onClose }: PlannerSidebarProps)
         {!isCollapsed && (
           <div className="flex items-center gap-3 animate-fadeIn">
             <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white font-semibold">
-              {user?.username?.substring(0, 2).toUpperCase() || user?.email?.substring(0, 2).toUpperCase() || "U"}
+              {user?.username?.substring(0, 2).toUpperCase() ||
+                user?.email?.substring(0, 2).toUpperCase() ||
+                "U"}
             </div>
             <div className="flex-1">
               <p className="font-semibold text-gray-800">
-                {user?.username || user?.email?.split('@')[0] || "User"}
+                {user?.username || user?.email?.split("@")[0] || "User"}
               </p>
               <span className="inline-block px-2 py-1 text-xs bg-orange-500 text-white rounded">
                 What&apos;s in Premium?
@@ -236,7 +243,9 @@ export default function PlannerSidebar({ isOpen, onClose }: PlannerSidebarProps)
         {isCollapsed && (
           <div className="flex justify-center animate-fadeIn">
             <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-semibold text-sm">
-              {user?.username?.substring(0, 2).toUpperCase() || user?.email?.substring(0, 2).toUpperCase() || "U"}
+              {user?.username?.substring(0, 2).toUpperCase() ||
+                user?.email?.substring(0, 2).toUpperCase() ||
+                "U"}
             </div>
           </div>
         )}
@@ -251,21 +260,23 @@ export default function PlannerSidebar({ isOpen, onClose }: PlannerSidebarProps)
               <button
                 key={item.path}
                 onClick={() => handleNavigation(item.path)}
-                className={`flex items-center ${isCollapsed ? 'justify-center px-2' : 'gap-3 px-4'} py-2.5 rounded-lg transition-colors w-full ${
+                className={`flex items-center ${
+                  isCollapsed ? "justify-center px-2" : "gap-3 px-4"
+                } py-2.5 rounded-lg transition-colors w-full ${
                   isActive
                     ? "bg-orange-50 text-orange-600"
                     : "text-gray-700 hover:bg-gray-50"
                 }`}
-                title={isCollapsed ? item.name : ''}
+                title={isCollapsed ? item.name : ""}
               >
                 <span className="flex items-center justify-center w-5 h-5">
-                  {React.cloneElement(item.icon as React.ReactElement, { 
-                    className: 'w-5 h-5',
-                    width: 20,
-                    height: 20
-                  })}
+                  {item.icon}
                 </span>
-                {!isCollapsed && <span className="font-medium transition-opacity duration-200 animate-fadeIn">{item.name}</span>}
+                {!isCollapsed && (
+                  <span className="font-medium transition-opacity duration-200 animate-fadeIn">
+                    {item.name}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -280,19 +291,17 @@ export default function PlannerSidebar({ isOpen, onClose }: PlannerSidebarProps)
               <button
                 key={item.path}
                 onClick={() => handleNavigation(item.path)}
-                className={`flex items-center ${isCollapsed ? 'justify-center px-2' : 'gap-3 px-4'} py-2.5 rounded-lg transition-colors w-full ${
+                className={`flex items-center ${
+                  isCollapsed ? "justify-center px-2" : "gap-3 px-4"
+                } py-2.5 rounded-lg transition-colors w-full ${
                   isActive
                     ? "bg-orange-50 text-orange-600"
                     : "text-gray-700 hover:bg-gray-50"
                 }`}
-                title={isCollapsed ? item.name : ''}
+                title={isCollapsed ? item.name : ""}
               >
                 <span className="flex items-center justify-center w-5 h-5">
-                  {React.cloneElement(item.icon as React.ReactElement, { 
-                    className: 'w-5 h-5',
-                    width: 20,
-                    height: 20
-                  })}
+                  {item.icon}
                 </span>
                 {!isCollapsed && (
                   <>
@@ -373,8 +382,10 @@ export default function PlannerSidebar({ isOpen, onClose }: PlannerSidebarProps)
         <div className="mt-6 px-4 space-y-1">
           <button
             onClick={() => handleNavigation("/invite")}
-            className={`flex items-center ${isCollapsed ? 'justify-center px-2' : 'gap-3 px-4'} py-2.5 rounded-lg text-gray-700 hover:bg-gray-50 w-full`}
-            title={isCollapsed ? 'Invite Friends' : ''}
+            className={`flex items-center ${
+              isCollapsed ? "justify-center px-2" : "gap-3 px-4"
+            } py-2.5 rounded-lg text-gray-700 hover:bg-gray-50 w-full`}
+            title={isCollapsed ? "Invite Friends" : ""}
           >
             <svg
               className="w-5 h-5 flex-shrink-0"
@@ -389,13 +400,17 @@ export default function PlannerSidebar({ isOpen, onClose }: PlannerSidebarProps)
                 d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
               />
             </svg>
-            {!isCollapsed && <span className="font-medium animate-fadeIn">Invite Friends</span>}
+            {!isCollapsed && (
+              <span className="font-medium animate-fadeIn">Invite Friends</span>
+            )}
           </button>
 
           <button
             onClick={() => handleNavigation("/help")}
-            className={`flex items-center ${isCollapsed ? 'justify-center px-2' : 'gap-3 px-4'} py-2.5 rounded-lg text-gray-700 hover:bg-gray-50 w-full`}
-            title={isCollapsed ? 'Help' : ''}
+            className={`flex items-center ${
+              isCollapsed ? "justify-center px-2" : "gap-3 px-4"
+            } py-2.5 rounded-lg text-gray-700 hover:bg-gray-50 w-full`}
+            title={isCollapsed ? "Help" : ""}
           >
             <svg
               className="w-5 h-5 flex-shrink-0"
@@ -410,7 +425,9 @@ export default function PlannerSidebar({ isOpen, onClose }: PlannerSidebarProps)
                 d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            {!isCollapsed && <span className="font-medium animate-fadeIn">Help</span>}
+            {!isCollapsed && (
+              <span className="font-medium animate-fadeIn">Help</span>
+            )}
           </button>
         </div>
       </nav>
@@ -419,8 +436,10 @@ export default function PlannerSidebar({ isOpen, onClose }: PlannerSidebarProps)
       <div className="p-4 border-t border-gray-200">
         <button
           onClick={() => handleNavigation("/")}
-          className={`flex items-center ${isCollapsed ? 'justify-center px-2' : 'gap-3 px-4'} py-2.5 rounded-lg text-gray-700 hover:bg-gray-50 w-full`}
-          title={isCollapsed ? 'Home' : ''}
+          className={`flex items-center ${
+            isCollapsed ? "justify-center px-2" : "gap-3 px-4"
+          } py-2.5 rounded-lg text-gray-700 hover:bg-gray-50 w-full`}
+          title={isCollapsed ? "Home" : ""}
         >
           <svg
             className="w-5 h-5 flex-shrink-0"
@@ -435,12 +454,16 @@ export default function PlannerSidebar({ isOpen, onClose }: PlannerSidebarProps)
               d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
             />
           </svg>
-          {!isCollapsed && <span className="font-medium animate-fadeIn">Home</span>}
+          {!isCollapsed && (
+            <span className="font-medium animate-fadeIn">Home</span>
+          )}
         </button>
         <button
           onClick={handleLogout}
-          className={`flex items-center ${isCollapsed ? 'justify-center px-2' : 'gap-3 px-4'} py-2.5 rounded-lg text-red-600 hover:bg-red-50 w-full transition-colors`}
-          title={isCollapsed ? 'Log Out' : ''}
+          className={`flex items-center ${
+            isCollapsed ? "justify-center px-2" : "gap-3 px-4"
+          } py-2.5 rounded-lg text-red-600 hover:bg-red-50 w-full transition-colors`}
+          title={isCollapsed ? "Log Out" : ""}
         >
           <svg
             className="w-5 h-5 flex-shrink-0"
@@ -455,12 +478,16 @@ export default function PlannerSidebar({ isOpen, onClose }: PlannerSidebarProps)
               d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
             />
           </svg>
-          {!isCollapsed && <span className="font-medium animate-fadeIn">Log Out</span>}
+          {!isCollapsed && (
+            <span className="font-medium animate-fadeIn">Log Out</span>
+          )}
         </button>
 
         {!isCollapsed && (
           <div className="mt-4 flex items-center gap-2 animate-fadeIn">
-            <span className="text-orange-500 font-bold text-lg">Macro Mate</span>
+            <span className="text-orange-500 font-bold text-lg">
+              Macro Mate
+            </span>
             <svg
               className="w-6 h-6 text-orange-500"
               fill="currentColor"
