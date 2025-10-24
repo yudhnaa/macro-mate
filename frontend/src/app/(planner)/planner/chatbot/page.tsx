@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import axiosInstance from "@/lib/api/axios";
 
 export default function ChatbotPage() {
   const [messages, setMessages] = useState<
@@ -91,7 +90,6 @@ export default function ChatbotPage() {
     ]);
 
     try {
-      const accessToken = localStorage.getItem("token");
       // Lấy thread_id từ localStorage (nếu có)
       const threadId = localStorage.getItem("chatbot_thread_id") || "";
 
@@ -104,17 +102,23 @@ export default function ChatbotPage() {
         formData.append("img_file", currentImageFile);
       }
 
-      const response = axiosInstance.post("/advice/stream", formData, {
-        responseType: "stream",
-        headers: {
-          // 'Content-Type' will be set automatically by axios for FormData
-        },
-      });
-
       // Reset image sau khi gửi
       if (currentImageFile) {
         handleRemoveImage();
       }
+
+      // Use fetch for streaming instead of axios
+      const accessToken = localStorage.getItem("token");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/advice/stream`,
+        {
+          method: "POST",
+          headers: {
+            ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+          },
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to fetch response");
@@ -272,22 +276,19 @@ export default function ChatbotPage() {
           {messages.map((message, index) => (
             <div
               key={index}
-              className={`flex ${
-                message.role === "user" ? "justify-end" : "justify-start"
-              }`}
+              className={`flex ${message.role === "user" ? "justify-end" : "justify-start"
+                }`}
             >
               <div
-                className={`flex gap-3 max-w-[80%] ${
-                  message.role === "user" ? "flex-row-reverse" : "flex-row"
-                }`}
+                className={`flex gap-3 max-w-[80%] ${message.role === "user" ? "flex-row-reverse" : "flex-row"
+                  }`}
               >
                 {/* Avatar */}
                 <div
-                  className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                    message.role === "user"
-                      ? "bg-orange-500 text-white"
-                      : "bg-blue-500 text-white"
-                  }`}
+                  className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${message.role === "user"
+                    ? "bg-orange-500 text-white"
+                    : "bg-blue-500 text-white"
+                    }`}
                 >
                   {message.role === "user" ? (
                     <svg
@@ -322,11 +323,10 @@ export default function ChatbotPage() {
 
                 {/* Message Content */}
                 <div
-                  className={`rounded-lg px-4 py-3 ${
-                    message.role === "user"
-                      ? "bg-orange-500 text-white"
-                      : "bg-white border border-gray-200 text-gray-800"
-                  }`}
+                  className={`rounded-lg px-4 py-3 ${message.role === "user"
+                    ? "bg-orange-500 text-white"
+                    : "bg-white border border-gray-200 text-gray-800"
+                    }`}
                 >
                   {/* Hiển thị ảnh nếu có */}
                   {message.imageUrl && (
@@ -390,11 +390,10 @@ export default function ChatbotPage() {
                     )}
                   </div>
                   <p
-                    className={`text-xs mt-2 ${
-                      message.role === "user"
-                        ? "text-orange-100"
-                        : "text-gray-500"
-                    }`}
+                    className={`text-xs mt-2 ${message.role === "user"
+                      ? "text-orange-100"
+                      : "text-gray-500"
+                      }`}
                   >
                     {message.timestamp.toLocaleTimeString([], {
                       hour: "2-digit",
