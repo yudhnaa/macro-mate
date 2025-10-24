@@ -1,0 +1,81 @@
+services:
+  postgres:
+    image: ankane/pgvector:latest
+    container_name: macro-mate-postgres
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    volumes:
+      - ../data/postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - macro-mate-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    env_file:
+      - .env
+    command: ["postgres", "-c", "shared_preload_libraries=vector"]
+
+  redis:
+    image: redis:8-alpine
+    container_name: macro-mate-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - ../data/redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - macro-mate-network
+    restart: unless-stopped
+
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: macro-mate-api
+    environment:
+      DATABASE_HOST: macro-mate-postgres
+      REDIS_URL: redis://macro-mate-redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - macro-mate-network
+    env_file:
+      - .env
+    restart: unless-stopped
+
+  nginx:
+    build:
+      context: ../nginx
+      dockerfile: Dockerfile
+    container_name: macro-mate-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - fastapi
+    volumes:
+      - ../nginx/ssl:/etc/nginx/ssl
+    environment:
+      SERVER_NAME: ${SERVER_NAME:-_}
+      SSL_CN: ${SSL_CN}
+      BACKEND_HOST: macro-mate-api
+      BACKEND_PORT: ${BACKEND_PORT:-8000}
+    networks:
+      - macro-mate-network
+    restart: unless-stopped
+
+networks:
+  macro-mate-network:
+    driver: bridge
