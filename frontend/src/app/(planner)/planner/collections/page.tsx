@@ -49,13 +49,13 @@ export default function CollectionsPage() {
       try {
         setLoading(true);
         setError("");
-        
+
         const response = await getMealHistory({ limit: 100 });
         const transformedImages = response.meals.map(transformMealToFoodImage);
         console.log("transformedImages", transformedImages);
-        
-        
-        setImages(transformedImages); 
+
+
+        setImages(transformedImages);
       } catch (err) {
         console.error("Failed to fetch meals:", err);
         setError("Failed to load your meal history. Please try again.");

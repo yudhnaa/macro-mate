@@ -337,7 +337,7 @@ export default function ChatbotPage() {
                       />
                     </div>
                   )}
-                  
+
                   <div
                     className={`px-3 sm:px-4 py-2 sm:py-3 ${
                       message.role === "user"

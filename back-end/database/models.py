@@ -71,9 +71,9 @@ class FoodDB(Base):
     needs_grill = Column(Boolean, default=False)
 
     complexity = Column(Integer, nullable=True)
-    cook_time = Column(Float, nullable=True) 
-    prep_time = Column(Float, nullable=True) 
-    wait_time = Column(Float, nullable=True) 
+    cook_time = Column(Float, nullable=True)
+    prep_time = Column(Float, nullable=True)
+    wait_time = Column(Float, nullable=True)
     total_time = Column(Float, nullable=True)
 
     grams = Column(Float, nullable=True)
@@ -87,8 +87,6 @@ class FoodDB(Base):
     direction = relationship(
         "DirectionDB", back_populates="food", cascade="all, delete-orphan"
     )
-
-
 
 
 class MealTypeDB(str, Enum):
@@ -205,14 +203,15 @@ class NutritionAnalysisLogDB(Base):
     meal = relationship("UserMealDB", back_populates="analysis_logs")
 
 
-
 class DirectionDB(Base):
     __tablename__ = "direction"
 
     id = Column(Integer, primary_key=True, index=True)
     order = Column(Integer, nullable=False)
     direction = Column(Text, nullable=False)
-    food_id = Column(Integer, ForeignKey("foods.id", ondelete="CASCADE"), nullable=False, index=True)
-    
+    food_id = Column(
+        Integer, ForeignKey("foods.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+
     # Relationship
     food = relationship("FoodDB", back_populates="direction")

@@ -29,7 +29,7 @@ export default function NutritionAnalysisModal({
       // Gọi API cho từng meal được chọn
       const detailPromises = imageIds.map((id) => getMealDetail(Number(id)));
       const details = await Promise.all(detailPromises);
-      
+
       setMealDetails(details);
 
       // Tính tổng nutrition từ các meals

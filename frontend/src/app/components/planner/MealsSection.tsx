@@ -36,7 +36,7 @@ const transformMealToFoodImage = (meal: MealHistoryItem): FoodImage => {
   };
 };
 
-export default function MealsSection({ 
+export default function MealsSection({
   selectedDate = new Date(),
   mealImages: externalMealImages,
   onMealImagesChange
@@ -61,21 +61,21 @@ export default function MealsSection({
       try {
         setLoading(true);
         setError('');
-        
+
         const response = await getMealHistory({ limit: 100 });
         const transformedImages = response.meals.map(transformMealToFoodImage);
-        
+
         // Filter meals by selected date
         const selectedDateStr = selectedDate.toISOString().split('T')[0];
         const mealsForDate = transformedImages.filter(meal => meal.date === selectedDateStr);
-        
+
         // Group meals by type
         const groupedMeals: { [key: string]: FoodImage[] } = {
           breakfast: mealsForDate.filter(m => m.mealType === 'breakfast'),
           lunch: mealsForDate.filter(m => m.mealType === 'lunch'),
           dinner: mealsForDate.filter(m => m.mealType === 'dinner'),
         };
-        
+
         updateMealImages(groupedMeals);
       } catch (err) {
         console.error('Failed to fetch meals:', err);
@@ -106,7 +106,7 @@ export default function MealsSection({
       ...mealImages,
       [selectedMealType]: [...currentMeals, newImage]
     };
-    
+
     if (onMealImagesChange) {
       // Using external state
       onMealImagesChange(updatedMeals);
@@ -114,7 +114,7 @@ export default function MealsSection({
       // Using internal state
       setInternalMealImages(updatedMeals);
     }
-    
+
     setShowUploadModal(false);
   };
 
@@ -149,7 +149,7 @@ export default function MealsSection({
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <button 
+            <button
               onClick={() => {
                 // Re-fetch meals
                 window.location.reload();
