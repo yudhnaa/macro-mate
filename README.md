@@ -30,6 +30,17 @@ Macro Mate is an intelligent nutrition tracking and meal planning application th
 - **Progress Analytics** - Visualize your nutrition journey with interactive charts
 - **Secure Authentication** - JWT-based user authentication and profile management
 
+### Demo
+---
+
+<div align="center">
+  <a href="https://www.youtube.com/watch?v=0q7sMScwsKU">
+    <img src="./assets/logo-horizontal.svg" alt="MacroMate Food" width="520">
+  </a>
+</div>
+
+---
+
 ## Technology Stack
 
 ### **Backend**
