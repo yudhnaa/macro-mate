@@ -142,7 +142,7 @@ export default function PlannerSidebar({
   return (
     <aside
       className={`
-        ${isCollapsed ? "w-20" : "w-72"} 
+        ${isCollapsed ? "w-20" : "w-72"}
         bg-white border-r border-gray-200 flex flex-col h-screen overflow-y-auto
         fixed lg:static inset-y-0 left-0 z-50
         transform transition-all duration-300 ease-in-out

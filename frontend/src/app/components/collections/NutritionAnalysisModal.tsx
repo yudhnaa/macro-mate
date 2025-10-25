@@ -29,7 +29,7 @@ export default function NutritionAnalysisModal({
       // Gọi API cho từng meal được chọn
       const detailPromises = imageIds.map((id) => getMealDetail(Number(id)));
       const details = await Promise.all(detailPromises);
-      
+
       setMealDetails(details);
 
       // Tính tổng nutrition từ các meals
@@ -169,7 +169,7 @@ Recommendations:
                         fill
                         className="object-cover"
                       />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center">
+                      <div className="absolute inset-0  bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center">
                         <span className="text-white text-xs opacity-0 group-hover:opacity-100">
                           {formatDate(image.date)}
                         </span>

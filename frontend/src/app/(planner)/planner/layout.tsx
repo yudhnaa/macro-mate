@@ -21,8 +21,8 @@ export default function PlannerLayout({
       )}
 
       {/* Sidebar */}
-      <PlannerSidebar 
-        isOpen={isSidebarOpen} 
+      <PlannerSidebar
+        isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />
 
