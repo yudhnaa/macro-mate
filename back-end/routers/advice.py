@@ -8,6 +8,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from services.user_service import UserProfileService
 from services.workflow_service import WorkflowService, get_profile_service
+from utils.image_base64_helper import upload_file_to_base64, validate_image_file
 from utils.logger import setup_logger
 from utils.auth import get_current_user
 from sqlalchemy.orm import Session
@@ -77,7 +78,7 @@ async def stream_advice(
     db: Session = Depends(get_db),
     service: WorkflowService = Depends(get_workflow_service),
     profile_service: UserProfileService = Depends(get_profile_service),
-    cloudinary_service: CloudinaryService = Depends(get_cloudinary_service)
+    # cloudinary_service: CloudinaryService = Depends(get_cloudinary_service)
 ):
     
     # Get user from database
@@ -99,21 +100,42 @@ async def stream_advice(
 
     print("=====>THREAD ID:", thread_id)
 
-    image_url = None
-    upload_result = {}
-
+    image_data_uri = None
+    
     if img_file:
-        """Upload cloudinary """
-        upload_result = await cloudinary_service.upload_image(
-            file=img_file,
-            user_id=user.id,
-            optimize=True,
-        )
+        # Validate
+        if not validate_image_file(img_file):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid image format. Allowed: JPEG, PNG, WebP, HEIC"
+            )
+        
+        try:
+            # Convert to base64
+            image_data_uri = await upload_file_to_base64(
+                file=img_file,
+                max_size_mb=5.0,
+                optimize=True,
+                max_dimension=1024
+            )
+            
+            logger.info(f"Image → base64 ({len(image_data_uri)} bytes)")
+            
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
 
-        image_url = upload_result.get("secure_url")
-        if not image_url:
-            raise HTTPException(status_code=500, detail="Image upload failed")
-        print("=====>IMAGE URL:", image_url)
+    # if img_file:
+    #     """Upload cloudinary """
+    #     upload_result = await cloudinary_service.upload_image(
+    #         file=img_file,
+    #         user_id=user.id,
+    #         optimize=True,
+    #     )
+
+    #     image_url = upload_result.get("secure_url")
+    #     if not image_url:
+    #         raise HTTPException(status_code=500, detail="Image upload failed")
+    #     print("=====>IMAGE URL:", image_url)
 
     # Format profile to match expected structure
     user_profile = format_user_profile(user_profile)
@@ -122,11 +144,18 @@ async def stream_advice(
     async def event_generator():
         try:
             yield f"thread_id: {thread_id}\n\n"
-            if image_url:
-                yield f"data: {json.dumps({'type': 'image_upload', 'content': upload_result}, ensure_ascii=False)}\n\n"
+            if image_data_uri:
+                yield f"data: {json.dumps({
+                    'type': 'image_received',
+                    'content': {
+                        'size': len(image_data_uri),
+                        'format': 'base64'
+                    }
+                }, ensure_ascii=False)}\n\n"
+
             async for event in service.process_request_stream(
                 thread_id=thread_id,
-                image_url=image_url,
+                image_url=image_data_uri,
                 user_query=user_query,
                 user_profile=user_profile,
             ):

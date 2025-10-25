@@ -65,7 +65,7 @@ htmlcov/
 # Documentation
 *.md
 docs/
-
+prompt.txt
 # Misc
 .mypy_cache/
 .dmypy.json

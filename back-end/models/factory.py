@@ -51,7 +51,7 @@ class ModelFactory:
             )
         elif provider == "gemini":
             model = Gemini(
-                model_name=model_name or provider_config["gemini"],
+                model_name=model_name or provider_config["model"],
                 api_key=os.getenv("GOOGLE_API_KEY"),
                 **kwargs,
             )
