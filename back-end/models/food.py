@@ -48,7 +48,6 @@ class FoodCreate(FoodBase):
     """Schema for creating a new food"""
 
 
-
 class FoodUpdate(BaseModel):
     """Schema for updating food - all fields optional"""
 

@@ -13,7 +13,8 @@ logger = setup_logger(__name__)
 
 
 def route_after_router(state: GraphState) -> Literal["image_advisor", "text_advisor"]:
-    """Conditional edge: có ảnh → image_advisor (LLM xử lý ảnh trực tiếp), không → text_advisor"""
+    """Conditional edge: có ảnh
+        → image_advisor (LLM xử lý ảnh trực tiếp), không → text_advisor"""
     return "image_advisor" if state["has_image"] else "text_advisor"
 
 

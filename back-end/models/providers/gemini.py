@@ -1,10 +1,9 @@
+import base64
 import os
 from typing import Any, Iterator, List, Optional
-import base64
-import io
-import requests
 
 import google.generativeai as genai
+import requests
 from dotenv import load_dotenv
 from langchain_core.callbacks import CallbackManagerForLLMRun
 from langchain_core.messages import AIMessage, AIMessageChunk, BaseMessage
@@ -177,33 +176,53 @@ class Gemini(BaseReasoningModel):
                             try:
                                 if image_url.startswith("http"):
                                     # Download image và convert sang base64
-                                    logger.info(f"Downloading image from URL: {image_url[:100]}...")
+                                    logger.info(
+                                        f"Downloading image from URL: \
+                                            {image_url[:100]}..."
+                                    )
                                     response = requests.get(image_url, timeout=10)
                                     image_bytes = response.content
 
-                                    # Format theo Python SDK: inline_data (snake_case) với mime_type và data
-                                    parts.append({
-                                        "inline_data": {
-                                            "mime_type": response.headers.get("content-type", "image/jpeg"),
-                                            "data": base64.b64encode(image_bytes).decode("utf-8")
+                                    # Format theo Python SDK: inline_data
+                                    #   với mime_type và data
+                                    parts.append(
+                                        {
+                                            "inline_data": {
+                                                "mime_type": response.headers.get(
+                                                    "content-type", "image/jpeg"
+                                                ),
+                                                "data": base64.b64encode(
+                                                    image_bytes
+                                                ).decode("utf-8"),
+                                            }
                                         }
-                                    })
-                                    logger.info(f"✓ Image downloaded, size: {len(image_bytes)} bytes, mime: {response.headers.get('content-type')}")
+                                    )
+                                    logger.info(
+                                        f"Image downloaded, size: {len(image_bytes)} \
+                                            bytes, mime: {response.headers.get('content-type')}"
+                                    )
                                 elif image_url.startswith("data:image"):
                                     # Base64 encoded image từ form
                                     header, encoded = image_url.split(",", 1)
                                     mime_type = header.split(":")[1].split(";")[0]
 
                                     # Format theo Python SDK: inline_data (snake_case) với mime_type và data
-                                    parts.append({
-                                        "inline_data": {
-                                            "mime_type": mime_type,
-                                            "data": encoded
+                                    parts.append(
+                                        {
+                                            "inline_data": {
+                                                "mime_type": mime_type,
+                                                "data": encoded,
+                                            }
                                         }
-                                    })
-                                    logger.info(f"✓ Base64 image added, mime: {mime_type}, data length: {len(encoded)}")
+                                    )
+                                    logger.info(
+                                        f"Base64 image added, mime: {mime_type}, \
+                                            data length: {len(encoded)}"
+                                    )
                                 else:
-                                    logger.warning(f"Unsupported image URL format: {image_url}")
+                                    logger.warning(
+                                        f"Unsupported image URL format: {image_url}"
+                                    )
                                     parts.append(f"[Error: Unsupported image format]")
                             except Exception as e:
                                 logger.error(f"Failed to load image: {e}")
@@ -221,7 +240,9 @@ class Gemini(BaseReasoningModel):
             system_content = messages[0].content
             if len(gemini_messages) > 1:
                 # Merge system với user message đầu tiên
-                first_user_parts = gemini_messages[1]["parts"] if len(gemini_messages) > 1 else []
+                first_user_parts = (
+                    gemini_messages[1]["parts"] if len(gemini_messages) > 1 else []
+                )
                 merged_parts = []
 
                 # Thêm system prompt trước

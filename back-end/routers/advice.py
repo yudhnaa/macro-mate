@@ -45,11 +45,15 @@ def format_user_profile(user_profile: dict) -> dict:
 
     # Add activity level
     if user_profile.get("activity_level"):
-        description_parts.append(f"Mức độ hoạt động: {user_profile.get('activity_level')}")
+        description_parts.append(
+            f"Mức độ hoạt động: {user_profile.get('activity_level')}"
+        )
 
     # Add dietary restrictions
     if user_profile.get("dietary_restrictions"):
-        description_parts.append(f"Hạn chế chế độ ăn: {user_profile.get('dietary_restrictions')}")
+        description_parts.append(
+            f"Hạn chế chế độ ăn: {user_profile.get('dietary_restrictions')}"
+        )
 
     # Add allergies
     if user_profile.get("allergies"):
@@ -87,10 +91,7 @@ async def stream_advice(
     user = get_user_by_email(db, current_user_email)
     print("USER=====>:", user)
     if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found"
-        )
+        raise HTTPException(status_code=404, detail="User not found")
 
     # Get user profile with computed fields
     user_profile = add_computed_fields(user)
@@ -111,7 +112,7 @@ async def stream_advice(
         image_bytes = await img_file.read()
 
         # Convert sang base64 để gửi cho Gemini
-        image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+        image_base64 = base64.b64encode(image_bytes).decode("utf-8")
         content_type = img_file.content_type or "image/jpeg"
 
         # Tạo data URL cho Gemini

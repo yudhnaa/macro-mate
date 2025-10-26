@@ -118,7 +118,7 @@ def image_advisor_node(state: GraphState) -> GraphState:
 
         # Build prompt với thông tin user profile
         prompt = image_advisor_prompt.get_image_advisor_prompt()
-        
+
         # Format input cho prompt - không cần vision_result nữa
         advisor_input = {
             "age": user_profile.get("age", "N/A"),
@@ -133,21 +133,28 @@ def image_advisor_node(state: GraphState) -> GraphState:
 
         # Format prompt thành text
         formatted_messages = prompt.format_messages(**advisor_input)
-        
+
         # Tạo multimodal message: text prompt + ảnh
         final_messages = []
         for msg in formatted_messages:
-            if hasattr(msg, 'content'):
+            if hasattr(msg, "content"):
                 # System/Human message với text
                 final_messages.append(msg)
-        
+
         # Thêm ảnh vào message cuối cùng (user message)
         if final_messages and image_url:
             last_msg = final_messages[-1]
             # Tạo multimodal content
             multimodal_content = [
-                {"type": "text", "text": last_msg.content if hasattr(last_msg, 'content') else str(last_msg)},
-                {"type": "image_url", "image_url": {"url": image_url}}
+                {
+                    "type": "text",
+                    "text": (
+                        last_msg.content
+                        if hasattr(last_msg, "content")
+                        else str(last_msg)
+                    ),
+                },
+                {"type": "image_url", "image_url": {"url": image_url}},
             ]
             final_messages[-1] = HumanMessage(content=multimodal_content)
 
