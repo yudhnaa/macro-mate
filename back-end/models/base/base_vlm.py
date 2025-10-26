@@ -12,7 +12,7 @@ class BaseVisionLanguageModel(BaseChatModel, ABC):
     Interface cho các mô hình VLM Providers
     """
 
-    temperature: float = 0.7
+    temperature: float = 0.3
     max_tokens: Optional[int] = None
     timeout: int = 60  # Request timeout (seconds)
 

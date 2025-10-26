@@ -71,6 +71,12 @@ class Settings(BaseSettings):
         default=True, description="Enable L1 memory cache"
     )
 
+    # USDA API
+    USDA_API_KEY: str = Field(
+        ...,
+        description="USDA FoodData Central API key"
+    )
+
     # ===== Pydantic Config =====
     model_config = ConfigDict(
         env_file=".env",

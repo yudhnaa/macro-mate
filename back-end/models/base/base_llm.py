@@ -9,7 +9,7 @@ class BaseReasoningModel(BaseChatModel, ABC):
     Interface cho text-only LLMs (không cần vision).
     """
 
-    temperature: float = 0.4
+    temperature: float = 0.3
     max_tokens: Optional[int] = 4096
     timeout: int = 60  # Request timeout (seconds)
 

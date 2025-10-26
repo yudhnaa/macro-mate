@@ -5,6 +5,7 @@ alembic==1.17.0
 annotated-types==0.7.0
 anyio==4.11.0
 attrs==25.4.0
+autoflake==2.3.1
 bcrypt==4.0.1
 black==25.9.0
 cachetools==6.2.1
@@ -26,6 +27,7 @@ fastapi==0.119.0
 fastapi-cli==0.0.13
 fastapi-cloud-cli==0.3.1
 filelock==3.20.0
+filetype==1.2.0
 flake8==7.3.0
 frozenlist==1.8.0
 google-ai-generativelanguage==0.4.0
@@ -78,6 +80,7 @@ packaging==25.0
 passlib==1.7.4
 pathspec==0.12.1
 pgvector==0.4.1
+pillow==12.0.0
 platformdirs==4.5.0
 pre_commit==4.3.0
 propcache==0.4.1
@@ -124,7 +127,7 @@ typing-inspection==0.4.2
 typing_extensions==4.15.0
 urllib3==2.5.0
 uvicorn==0.37.0
-# uvloop==0.22.1
+uvloop==0.22.1
 virtualenv==20.35.3
 watchfiles==1.1.1
 websockets==15.0.1
