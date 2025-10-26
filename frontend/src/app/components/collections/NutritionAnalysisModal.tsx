@@ -29,7 +29,7 @@ export default function NutritionAnalysisModal({
       // Gọi API cho từng meal được chọn
       const detailPromises = imageIds.map((id) => getMealDetail(Number(id)));
       const details = await Promise.all(detailPromises);
-      
+
       setMealDetails(details);
 
       // Tính tổng nutrition từ các meals
@@ -66,16 +66,16 @@ export default function NutritionAnalysisModal({
       });
 
       // Tạo AI advice dựa trên data thực tế
-      const proteinPercent = ((totalNutrition.protein * 4) / totalNutrition.calories * 100).toFixed(0);
-      const carbsPercent = ((totalNutrition.carbs * 4) / totalNutrition.calories * 100).toFixed(0);
-      const fatPercent = ((totalNutrition.fat * 9) / totalNutrition.calories * 100).toFixed(0);
+      const proteinPercent = ((totalNutrition.protein * 4) / totalNutrition.calories * 100).toFixed(2);
+      const carbsPercent = ((totalNutrition.carbs * 4) / totalNutrition.calories * 100).toFixed(2);
+      const fatPercent = ((totalNutrition.fat * 9) / totalNutrition.calories * 100).toFixed(2);
 
       const analysisResult: NutritionAnalysisResult = {
         selectedImages: images,
         totalNutrition,
-        advice: `Based on your ${images.length} selected meal(s), you've consumed a total of ${totalNutrition.calories} calories.
+        advice: `Based on your ${images.length} selected meal(s), you've consumed a total of ${totalNutrition.calories.toFixed(2)} calories.
 
-Your macro breakdown shows ${totalNutrition.protein.toFixed(1)}g of protein (${proteinPercent}%), ${totalNutrition.carbs.toFixed(1)}g of carbs (${carbsPercent}%), and ${totalNutrition.fat.toFixed(1)}g of fat (${fatPercent}%).
+Your macro breakdown shows ${totalNutrition.protein.toFixed(2)}g of protein (${proteinPercent}%), ${totalNutrition.carbs.toFixed(2)}g of carbs (${carbsPercent}%), and ${totalNutrition.fat.toFixed(2)}g of fat (${fatPercent}%).
 
 Recommendations:
 • Try to maintain a balanced intake of proteins, carbs, and healthy fats
@@ -169,7 +169,7 @@ Recommendations:
                         fill
                         className="object-cover"
                       />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center">
+                      <div className="absolute inset-0  bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center">
                         <span className="text-white text-xs opacity-0 group-hover:opacity-100">
                           {formatDate(image.date)}
                         </span>
@@ -185,37 +185,37 @@ Recommendations:
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                   <div className="bg-white rounded-lg p-4 text-center shadow-sm">
                     <div className="text-3xl font-bold text-orange-600">
-                      {result.totalNutrition.calories}
+                      {result.totalNutrition.calories.toFixed(2)}
                     </div>
                     <div className="text-sm text-gray-600 mt-1">Calories</div>
                   </div>
                   <div className="bg-white rounded-lg p-4 text-center shadow-sm">
                     <div className="text-3xl font-bold text-blue-600">
-                      {result.totalNutrition.protein.toFixed(1)}g
+                      {result.totalNutrition.protein.toFixed(2)}g
                     </div>
                     <div className="text-sm text-gray-600 mt-1">Protein</div>
                   </div>
                   <div className="bg-white rounded-lg p-4 text-center shadow-sm">
                     <div className="text-3xl font-bold text-green-600">
-                      {result.totalNutrition.carbs.toFixed(1)}g
+                      {result.totalNutrition.carbs.toFixed(2)}g
                     </div>
                     <div className="text-sm text-gray-600 mt-1">Carbs</div>
                   </div>
                   <div className="bg-white rounded-lg p-4 text-center shadow-sm">
                     <div className="text-3xl font-bold text-yellow-600">
-                      {result.totalNutrition.fat.toFixed(1)}g
+                      {result.totalNutrition.fat.toFixed(2)}g
                     </div>
                     <div className="text-sm text-gray-600 mt-1">Fat</div>
                   </div>
                   <div className="bg-white rounded-lg p-4 text-center shadow-sm">
                     <div className="text-3xl font-bold text-purple-600">
-                      {result.totalNutrition.fiber?.toFixed(1)}g
+                      {result.totalNutrition.fiber?.toFixed(2)}g
                     </div>
                     <div className="text-sm text-gray-600 mt-1">Fiber</div>
                   </div>
                   <div className="bg-white rounded-lg p-4 text-center shadow-sm">
                     <div className="text-3xl font-bold text-red-600">
-                      {result.totalNutrition.sodium?.toFixed(1)}g
+                      {result.totalNutrition.sodium?.toFixed(2)}g
                     </div>
                     <div className="text-sm text-gray-600 mt-1">Sodium</div>
                   </div>
@@ -223,7 +223,7 @@ Recommendations:
               </div>
 
               {/* AI Advice */}
-              <div className="bg-blue-50 rounded-lg p-6">
+              {/* <div className="bg-blue-50 rounded-lg p-6">
                 <div className="flex items-start gap-3">
                   <svg
                     className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1"
@@ -247,7 +247,7 @@ Recommendations:
                     </p>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Breakdown by Image */}
               {result.breakdown && result.breakdown.length > 0 && (
@@ -286,27 +286,27 @@ Recommendations:
                               <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 text-sm">
                                 <div className="bg-orange-50 rounded px-3 py-2">
                                   <span className="text-gray-600 block text-xs">Calories</span>
-                                  <span className="font-semibold text-orange-600">{item.contribution.calories}</span>
+                                  <span className="font-semibold text-orange-600">{item.contribution.calories.toFixed(2)}</span>
                                 </div>
                                 <div className="bg-blue-50 rounded px-3 py-2">
                                   <span className="text-gray-600 block text-xs">Protein</span>
-                                  <span className="font-semibold text-blue-600">{item.contribution.protein.toFixed(1)}g</span>
+                                  <span className="font-semibold text-blue-600">{item.contribution.protein.toFixed(2)}g</span>
                                 </div>
                                 <div className="bg-green-50 rounded px-3 py-2">
                                   <span className="text-gray-600 block text-xs">Carbs</span>
-                                  <span className="font-semibold text-green-600">{item.contribution.carbs.toFixed(1)}g</span>
+                                  <span className="font-semibold text-green-600">{item.contribution.carbs.toFixed(2)}g</span>
                                 </div>
                                 <div className="bg-yellow-50 rounded px-3 py-2">
                                   <span className="text-gray-600 block text-xs">Fat</span>
-                                  <span className="font-semibold text-yellow-600">{item.contribution.fat.toFixed(1)}g</span>
+                                  <span className="font-semibold text-yellow-600">{item.contribution.fat.toFixed(2)}g</span>
                                 </div>
                                 <div className="bg-purple-50 rounded px-3 py-2">
                                   <span className="text-gray-600 block text-xs">Fiber</span>
-                                  <span className="font-semibold text-purple-600">{item.contribution.fiber?.toFixed(1)}g</span>
+                                  <span className="font-semibold text-purple-600">{item.contribution.fiber?.toFixed(2)}g</span>
                                 </div>
                                 <div className="bg-red-50 rounded px-3 py-2">
                                   <span className="text-gray-600 block text-xs">Sodium</span>
-                                  <span className="font-semibold text-red-600">{item.contribution.sodium?.toFixed(1)}g</span>
+                                  <span className="font-semibold text-red-600">{item.contribution.sodium?.toFixed(2)}g</span>
                                 </div>
                               </div>
                             </div>
@@ -321,32 +321,32 @@ Recommendations:
                                   <div key={foodItem.id} className="bg-gray-50 rounded-lg p-3">
                                     <div className="flex items-center justify-between mb-2">
                                       <span className="font-medium text-gray-900">{foodItem.name}</span>
-                                      <span className="text-sm text-gray-500">{foodItem.estimated_weight}g</span>
+                                      <span className="text-sm text-gray-500">{foodItem.estimated_weight.toFixed(2)}g</span>
                                     </div>
                                     <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-xs">
                                       <div>
                                         <span className="text-gray-500">Cal:</span>
-                                        <span className="font-semibold ml-1 text-orange-600">{foodItem.calories}</span>
+                                        <span className="font-semibold ml-1 text-orange-600">{foodItem.calories.toFixed(2)}</span>
                                       </div>
                                       <div>
                                         <span className="text-gray-500">Pro:</span>
-                                        <span className="font-semibold ml-1 text-blue-600">{foodItem.protein}g</span>
+                                        <span className="font-semibold ml-1 text-blue-600">{foodItem.protein.toFixed(2)}g</span>
                                       </div>
                                       <div>
                                         <span className="text-gray-500">Carb:</span>
-                                        <span className="font-semibold ml-1 text-green-600">{foodItem.carbs}g</span>
+                                        <span className="font-semibold ml-1 text-green-600">{foodItem.carbs.toFixed(2)}g</span>
                                       </div>
                                       <div>
                                         <span className="text-gray-500">Fat:</span>
-                                        <span className="font-semibold ml-1 text-yellow-600">{foodItem.fat}g</span>
+                                        <span className="font-semibold ml-1 text-yellow-600">{foodItem.fat.toFixed(2)}g</span>
                                       </div>
                                       <div>
                                         <span className="text-gray-500">Fiber:</span>
-                                        <span className="font-semibold ml-1 text-purple-600">{foodItem.fiber}g</span>
+                                        <span className="font-semibold ml-1 text-purple-600">{foodItem.fiber.toFixed(2)}g</span>
                                       </div>
                                       <div>
                                         <span className="text-gray-500">Sodium:</span>
-                                        <span className="font-semibold ml-1 text-red-600">{foodItem.sodium}g</span>
+                                        <span className="font-semibold ml-1 text-red-600">{foodItem.sodium.toFixed(2)}g</span>
                                       </div>
                                     </div>
                                   </div>

@@ -22,7 +22,7 @@ export default function PlannerPage() {
   // Calculate total nutrition from all meals
   const calculateTotalNutrition = React.useMemo(() => {
     const allMeals = [...mealImages.breakfast, ...mealImages.lunch, ...mealImages.dinner];
-    
+
     return allMeals.reduce(
       (totals, meal) => ({
         calories: totals.calories + (meal.nutritionInfo?.calories || 0),
@@ -47,7 +47,7 @@ export default function PlannerPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
           {/* Meals Section - Takes 2 columns */}
           <div className="lg:col-span-2">
-            <MealsSection 
+            <MealsSection
               selectedDate={selectedDate}
               mealImages={mealImages}
               onMealImagesChange={setMealImages}
@@ -62,7 +62,7 @@ export default function PlannerPage() {
 
         {/* Bottom Navigation */}
         <div className="mt-4 lg:mt-6 flex justify-between items-center gap-2">
-          <button 
+          <button
             onClick={() => {
               const prevDate = new Date(selectedDate);
               prevDate.setDate(prevDate.getDate() - 1);
@@ -87,7 +87,7 @@ export default function PlannerPage() {
             <span className="sm:hidden">Previous</span>
           </button>
 
-          <button 
+          <button
             onClick={() => {
               const nextDate = new Date(selectedDate);
               nextDate.setDate(nextDate.getDate() + 1);

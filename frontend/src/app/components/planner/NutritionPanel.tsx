@@ -177,7 +177,7 @@ export default function NutritionPanel({
           <span className="text-gray-800 font-medium">Calories</span>
           <div className="flex gap-4 sm:gap-8 lg:gap-12 items-center">
             <span className="text-gray-800 w-12 sm:w-16 text-right">
-              {data.calories}
+              {data.calories.toFixed(2)}
             </span>
             <span className="text-gray-600 w-16 sm:w-20 lg:w-24 text-right">
               {targets.calories}
@@ -193,7 +193,7 @@ export default function NutritionPanel({
           </div>
           <div className="flex gap-4 sm:gap-8 lg:gap-12 items-center">
             <span className="text-gray-800 w-12 sm:w-16 text-right">
-              {data.carbs}g
+              {data.carbs.toFixed(2)}g
             </span>
             <span className="text-gray-600 w-16 sm:w-20 lg:w-24 text-right">
               {targets.carbs}
@@ -208,7 +208,7 @@ export default function NutritionPanel({
             <span className="text-gray-800">Fat</span>
           </div>
           <div className="flex gap-4 sm:gap-8 lg:gap-12 items-center">
-            <span className="text-gray-800 w-12 sm:w-16 text-right">{data.fat}g</span>
+            <span className="text-gray-800 w-12 sm:w-16 text-right">{data.fat.toFixed(2)}g</span>
             <span className="text-gray-600 w-16 sm:w-20 lg:w-24 text-right">
               {targets.fat}
             </span>
@@ -223,7 +223,7 @@ export default function NutritionPanel({
           </div>
           <div className="flex gap-4 sm:gap-8 lg:gap-12 items-center">
             <span className="text-gray-800 w-12 sm:w-16 text-right">
-              {data.protein}g
+              {data.protein.toFixed(2)}g
             </span>
             <span className="text-gray-600 w-16 sm:w-20 lg:w-24 text-right">
               {targets.protein}
@@ -236,7 +236,7 @@ export default function NutritionPanel({
           <span className="text-gray-800">Fiber</span>
           <div className="flex gap-4 sm:gap-8 lg:gap-12 items-center">
             <span className="text-gray-800 w-12 sm:w-16 text-right">
-              {data.fiber}g
+              {data.fiber.toFixed(2)}g
             </span>
             <span className="text-gray-600 w-16 sm:w-20 lg:w-24 text-right">
               {targets.fiber}g
@@ -249,7 +249,7 @@ export default function NutritionPanel({
           <span className="text-gray-800">Sodium</span>
           <div className="flex gap-4 sm:gap-8 lg:gap-12 items-center">
             <span className="text-gray-800 w-12 sm:w-16 text-right">
-              {data.sodium}mg
+              {data.sodium.toFixed(2)}mg
             </span>
             <span className="text-gray-600 w-16 sm:w-20 lg:w-24 text-right">-</span>
           </div>
@@ -260,7 +260,7 @@ export default function NutritionPanel({
           <span className="text-gray-800">Cholesterol</span>
           <div className="flex gap-4 sm:gap-8 lg:gap-12 items-center">
             <span className="text-gray-800 w-12 sm:w-16 text-right">
-              {data.cholesterol}mg
+              {data.cholesterol.toFixed(2)}mg
             </span>
             <span className="text-gray-600 w-16 sm:w-20 lg:w-24 text-right">-</span>
           </div>

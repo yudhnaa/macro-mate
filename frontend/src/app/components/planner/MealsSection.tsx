@@ -36,7 +36,7 @@ const transformMealToFoodImage = (meal: MealHistoryItem): FoodImage => {
   };
 };
 
-export default function MealsSection({ 
+export default function MealsSection({
   selectedDate = new Date(),
   mealImages: externalMealImages,
   onMealImagesChange
@@ -61,21 +61,21 @@ export default function MealsSection({
       try {
         setLoading(true);
         setError('');
-        
+
         const response = await getMealHistory({ limit: 100 });
         const transformedImages = response.meals.map(transformMealToFoodImage);
-        
+
         // Filter meals by selected date
         const selectedDateStr = selectedDate.toISOString().split('T')[0];
         const mealsForDate = transformedImages.filter(meal => meal.date === selectedDateStr);
-        
+
         // Group meals by type
         const groupedMeals: { [key: string]: FoodImage[] } = {
           breakfast: mealsForDate.filter(m => m.mealType === 'breakfast'),
           lunch: mealsForDate.filter(m => m.mealType === 'lunch'),
           dinner: mealsForDate.filter(m => m.mealType === 'dinner'),
         };
-        
+
         updateMealImages(groupedMeals);
       } catch (err) {
         console.error('Failed to fetch meals:', err);
@@ -88,7 +88,7 @@ export default function MealsSection({
     fetchMealsForDate();
   }, [selectedDate, updateMealImages]); // Re-fetch when date changes
 
-  const meals: Array<{ type: 'breakfast' | 'lunch' | 'dinner'; label: string;  }> = [
+  const meals: Array<{ type: 'breakfast' | 'lunch' | 'dinner'; label: string; }> = [
     { type: 'breakfast', label: 'Breakfast' },
     { type: 'lunch', label: 'Lunch' },
     { type: 'dinner', label: 'Dinner' },
@@ -106,7 +106,7 @@ export default function MealsSection({
       ...mealImages,
       [selectedMealType]: [...currentMeals, newImage]
     };
-    
+
     if (onMealImagesChange) {
       // Using external state
       onMealImagesChange(updatedMeals);
@@ -114,7 +114,7 @@ export default function MealsSection({
       // Using internal state
       setInternalMealImages(updatedMeals);
     }
-    
+
     setShowUploadModal(false);
   };
 
@@ -143,13 +143,13 @@ export default function MealsSection({
             <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
               <AlertTriangleIcon className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
               <span className="text-gray-600">
-                {Object.values(mealImages).flat().reduce((sum: number, img: FoodImage) => sum + (img.nutritionInfo?.calories || 0), 0)} / 2008
+                {Object.values(mealImages).flat().reduce((sum: number, img: FoodImage) => sum + (img.nutritionInfo?.calories || 0), 0).toFixed(2)} / 2008
               </span>
             </div>
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <button 
+            <button
               onClick={() => {
                 // Re-fetch meals
                 window.location.reload();
@@ -246,7 +246,7 @@ export default function MealsSection({
                       {/* Nutrition badge if analyzed */}
                       {image.analyzed && image.nutritionInfo && (
                         <div className="absolute bottom-1 left-1 sm:bottom-2 sm:left-2 bg-black/70 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-[10px] sm:text-xs">
-                          {image.nutritionInfo.calories} cal
+                          {image.nutritionInfo.calories.toFixed(2)} cal
                         </div>
                       )}
                     </div>
@@ -268,19 +268,19 @@ export default function MealsSection({
                   <div className="flex items-center gap-1 sm:gap-2">
                     <span className="text-gray-500">Total Calories:</span>
                     <span className="font-semibold text-gray-800">
-                      {mealImages[meal.type].reduce((sum: number, img: FoodImage) => sum + (img.nutritionInfo?.calories || 0), 0)}
+                      {mealImages[meal.type].reduce((sum: number, img: FoodImage) => sum + (img.nutritionInfo?.calories || 0), 0).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex items-center gap-1 sm:gap-2">
                     <span className="text-gray-500">Protein:</span>
                     <span className="font-semibold text-gray-800">
-                      {mealImages[meal.type].reduce((sum: number, img: FoodImage) => sum + (img.nutritionInfo?.protein || 0), 0).toFixed(1)}g
+                      {mealImages[meal.type].reduce((sum: number, img: FoodImage) => sum + (img.nutritionInfo?.protein || 0), 0).toFixed(2)}g
                     </span>
                   </div>
                 </div>
               )}
             </div>
-          ))}
+            ))}
           </div>
         )}
       </div>
