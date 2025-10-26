@@ -70,7 +70,7 @@ export const uploadAndAnalyzeImage = async (
   const formData = new FormData();
   formData.append('file', file);
   formData.append('meal_type', mealType);
-  
+
   if (mealTime) {
     formData.append('meal_time', mealTime);
   }
