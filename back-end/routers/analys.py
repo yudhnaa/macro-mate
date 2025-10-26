@@ -116,35 +116,49 @@ async def upload_and_analyze_image(
         else:
             meal_time_dt = datetime.now()
 
-        logger.info(f"Uploading image for user {user_id}")
+        logger.info(f"Processing image for user {user_id}")
 
-        # Upload ảnh lên Cloudinary
-        upload_result = await cloudinary_service.upload_image(
-            file=file,
-            user_id=user_id,
-            optimize=True,
+        # 🚀 OPTIMIZATION: Convert to base64 immediately for Gemini (fast path)
+        from utils.image_base64_helper import upload_file_to_base64
+
+        try:
+            image_base64 = await upload_file_to_base64(
+                file=file,
+                max_size_mb=10.0,
+                optimize=True,
+                max_dimension=1024
+            )
+            logger.info("✅ Image converted to base64 for Gemini")
+        except Exception as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Failed to process image: {str(e)}"
+            )
+
+        # 📤 Start Cloudinary upload in background (will complete async)
+        import asyncio
+        cloudinary_task = asyncio.create_task(
+            cloudinary_service.upload_image(
+                file=file,
+                user_id=user_id,
+                optimize=True,
+            )
         )
+        logger.info("⏳ Cloudinary upload started in background")
 
-        image_url = upload_result.get("secure_url")
-        if not image_url:
-            raise HTTPException(status_code=500, detail="Image upload failed")
-
-        logger.info(f"Image uploaded successfully: {image_url}")
-
-        # Tạo record meal trong database với status PENDING
+        # Tạo record meal trong database với status PENDING (placeholder URL)
         meal = create_user_meal(
             db=db,
             user_id=user_id,
-            image_url=image_url,
+            image_url="pending",  # Will be updated after Cloudinary upload
             meal_type=meal_type_enum,
             meal_time=meal_time_dt,
         )
         meal_id = meal.id
-
         logger.info(f"Created meal record with ID: {meal_id}")
 
-        # Phân tích ảnh
-        analysis_result = await workflow_service.analyze_image(image_url)
+        # 🔥 Phân tích ảnh NGAY với base64 (không chờ Cloudinary)
+        analysis_result = await workflow_service.analyze_image(image_base64)
         analysis_dict = (
             analysis_result.model_dump()
             if hasattr(analysis_result, "model_dump")
@@ -154,6 +168,25 @@ async def upload_and_analyze_image(
         # Get model name from ModelFactory
         vlm_model = ModelFactory.create_vlm()
         model_name = getattr(vlm_model, "model_name", "unknown_model")
+
+        # ⏳ Wait for Cloudinary upload to complete
+        try:
+            upload_result = await cloudinary_task
+            image_url = upload_result.get("secure_url")
+            logger.info(f"✅ Cloudinary upload completed: {image_url}")
+        except Exception as e:
+            logger.error(f"⚠️ Cloudinary upload failed: {e}")
+            # Continue with analysis, use placeholder
+            upload_result = {
+                "secure_url": "upload_failed",
+                "thumbnail_url": None,
+                "public_id": "none",
+                "width": 0,
+                "height": 0,
+                "format": "unknown",
+                "size": 0,
+            }
+            image_url = "upload_failed"
 
         # Lưu kết quả phân tích vào database
         updated_meal = update_meal_analysis(
@@ -167,6 +200,12 @@ async def upload_and_analyze_image(
             raise HTTPException(
                 status_code=500, detail="Failed to save analysis results"
             )
+
+        # Update meal with real Cloudinary URL
+        from database.crud import update_meal_image_url
+        if image_url and image_url != "upload_failed":
+            update_meal_image_url(db, meal_id, image_url)
+            logger.info(f"Updated meal {meal_id} with Cloudinary URL")
 
         logger.info(f"Analysis results saved for meal ID: {meal_id}")
 
@@ -183,12 +222,12 @@ async def upload_and_analyze_image(
             },
             "analysis": analysis_dict,
             "nutrition_summary": {
-                "total_calories": updated_meal.total_calories,
-                "total_protein": updated_meal.total_protein,
-                "total_fat": updated_meal.total_fat,
-                "total_carbs": updated_meal.total_carbs,
-                "total_fiber": updated_meal.total_fiber,
-                "total_sodium": updated_meal.total_sodium,
+                "total_calories": round(updated_meal.total_calories, 2),
+                "total_protein": round(updated_meal.total_protein, 2),
+                "total_fat": round(updated_meal.total_fat, 2),
+                "total_carbs": round(updated_meal.total_carbs, 2),
+                "total_fiber": round(updated_meal.total_fiber, 2),
+                "total_sodium": round(updated_meal.total_sodium, 2),
             },
         }
 

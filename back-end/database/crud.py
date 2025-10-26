@@ -315,6 +315,30 @@ def get_user_meal_by_id(db: Session, meal_id: int) -> Optional[UserMealDB]:
     )
 
 
+def update_meal_image_url(
+    db: Session, meal_id: int, image_url: str
+) -> Optional[UserMealDB]:
+    """
+    Update meal's image_url after async Cloudinary upload completes
+
+    Args:
+        db: Database session
+        meal_id: Meal ID
+        image_url: Cloudinary secure_url
+
+    Returns:
+        Updated meal record or None if not found
+    """
+    meal = db.query(UserMealDB).filter(UserMealDB.id == meal_id).first()
+    if not meal:
+        return None
+
+    meal.image_url = image_url
+    db.commit()
+    db.refresh(meal)
+    return meal
+
+
 def get_user_meals(
     db: Session,
     user_id: int,
