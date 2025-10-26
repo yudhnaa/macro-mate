@@ -106,60 +106,60 @@ def vision_node(state: GraphState):
 
 def image_advisor_node(state: GraphState) -> GraphState:
     """
-    Node 2a: Generate advice dựa trên vision result
+    Node 2a: LLM xử lý trực tiếp ảnh và sinh text tư vấn (bỏ qua vision node)
     """
     if state.get("error"):
         return state
 
     try:
-        vision_result = state["vision_result"]
         user_profile = state["user_profile"]
+        image_url = state.get("image_url")
+        user_query = state.get("user_query", "")
 
-        # Format ingredients
-        ingredients_str = (
-            "\n".join(
-                [
-                    f"  • {ing.name}: {ing.estimated_weight}g - "
-                    f"Calo: {ing.nutrition.calories if ing.nutrition else 'N/A'}, "
-                    f"Protein: {ing.nutrition.protein if ing.nutrition else 'N/A'}g"
-                    for ing in (vision_result.ingredients or [])
-                ]
-            )
-            or "  Không có thông tin chi tiết"
-        )
-
-        # Build chain
+        # Build prompt với thông tin user profile
         prompt = image_advisor_prompt.get_image_advisor_prompt()
-        chain = prompt | llm
+        
+        # Format input cho prompt - không cần vision_result nữa
+        advisor_input = {
+            "age": user_profile.get("age", "N/A"),
+            "weight": user_profile.get("weight", "N/A"),
+            "bmi": user_profile.get("bmi", "N/A"),
+            "bodyShape": user_profile.get("bodyShape", "bình thường"),
+            "description": user_profile.get("description", "Duy trì sức khỏe"),
+            "health_conditions": user_profile.get("health_conditions") or "Không có",
+            "user_query": user_query,
+            "messages": state["messages"],
+        }
 
-        # Invoke - trả về AIMessage (có thể stream)
-        response = chain.invoke(
-            {
-                "dish_name": vision_result.dish_name or "Không xác định",
-                "calories": vision_result.total_estimated_calories or "N/A",
-                "ingredients": ingredients_str,
-                "age": user_profile.get("age", "N/A"),
-                "weight": user_profile.get("weight", "N/A"),
-                "bmi": user_profile.get("bmi", "N/A"),
-                "bodyShape": user_profile.get("bodyShape", "bình thường"),
-                "description": user_profile.get("description", "Duy trì sức khỏe"),
-                "health_conditions": user_profile.get("health_conditions")
-                or "Không có",
-                "additional_query": (
-                    f"\n{state.get('user_query', '')}"
-                    if state.get("user_query")
-                    else ""
-                ),
-                "messages": state["messages"],
-            }
-        )
+        # Format prompt thành text
+        formatted_messages = prompt.format_messages(**advisor_input)
+        
+        # Tạo multimodal message: text prompt + ảnh
+        final_messages = []
+        for msg in formatted_messages:
+            if hasattr(msg, 'content'):
+                # System/Human message với text
+                final_messages.append(msg)
+        
+        # Thêm ảnh vào message cuối cùng (user message)
+        if final_messages and image_url:
+            last_msg = final_messages[-1]
+            # Tạo multimodal content
+            multimodal_content = [
+                {"type": "text", "text": last_msg.content if hasattr(last_msg, 'content') else str(last_msg)},
+                {"type": "image_url", "image_url": {"url": image_url}}
+            ]
+            final_messages[-1] = HumanMessage(content=multimodal_content)
+
+        # Invoke LLM với ảnh và text
+        response = llm.invoke(final_messages)
 
         return {"messages": [response]}
 
     except Exception as e:
         import traceback
 
-        logger.error(f"text_advisor_node error: {traceback.format_exc()}")
+        logger.error(f"image_advisor_node error: {traceback.format_exc()}")
         return {"messages": [AIMessage(content=f"Lỗi: {str(e)}")]}
 
 

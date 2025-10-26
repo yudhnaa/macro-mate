@@ -76,39 +76,17 @@ class WorkflowService:
                 }
 
                 final_state = initial_state.copy()
-                vision_emitted = False
 
                 async for event in graph.astream(
                     initial_state, config, stream_mode="updates"
                 ):
                     for node_name, state_update in event.items():
-                        if node_name == "vision" and not vision_emitted:
-                            if state_update.get("error"):
-                                yield {
-                                    "type": "error",
-                                    "content": state_update["error"],
-                                }
-                                return
-
-                            if state_update.get("vision_result"):
-                                yield {
-                                    "type": "progress",
-                                    "step": "vision_analyzing",
-                                    "message": "Đang phân tích hình ảnh...",
-                                }
-
-                                vr = state_update["vision_result"]
-                                yield {
-                                    "type": "vision_complete",
-                                    "data": {
-                                        "dish_name": vr.dish_name,
-                                        "calories": vr.total_estimated_calories,
-                                        "confidence": getattr(
-                                            vr.safety, "confidence", 0
-                                        ),
-                                    },
-                                }
-                                vision_emitted = True
+                        if state_update.get("error"):
+                            yield {
+                                "type": "error",
+                                "content": state_update["error"],
+                            }
+                            return
                         final_state.update(state_update)
 
                 yield {
@@ -187,31 +165,14 @@ class WorkflowService:
             "messages": state.get("messages", []),
         }
 
-        if state.get("has_image") and state.get("vision_result"):
-            vision_result = state["vision_result"]
-            ingredients_str = (
-                "\n".join(
-                    [
-                        f"  • {ing.name}: {ing.estimated_weight}g - "
-                        f"Calo: {ing.nutrition.calories if ing.nutrition else 'N/A'}"
-                        for ing in (vision_result.ingredients or [])
-                    ]
-                )
-                or "  Không có thông tin"
-            )
-
+        if state.get("has_image"):
+            # Có ảnh: LLM tự xử lý ảnh, không cần vision_result
             return {
                 **common_input,
-                "dish_name": vision_result.dish_name or "Không xác định",
-                "calories": vision_result.total_estimated_calories or "N/A",
-                "ingredients": ingredients_str,
-                "additional_query": (
-                    f"\n{state.get('user_query', '')}"
-                    if state.get("user_query")
-                    else ""
-                ),
+                "user_query": state.get("user_query", ""),
             }
         else:
+            # Không có ảnh: text-only
             return {**common_input, "user_query": state.get("user_query", "")}
 
     async def analyze_image(self, img_url: str) -> RecognitionWithSafety:

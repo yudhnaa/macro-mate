@@ -19,19 +19,19 @@ class FoodBase(BaseModel):
 
     name: str
     raw_id: int
-    is_breakfast: bool = False
-    is_lunch: bool = False
-    is_dinner: bool = False
-    is_snack: bool = False
-    is_dessert: bool = False
-    needs_blender: bool = False
-    needs_oven: bool = False
-    needs_stove: bool = False
-    needs_slow_cooker: bool = False
-    needs_toaster: bool = False
-    needs_food_processor: bool = False
-    needs_microwave: bool = False
-    needs_grill: bool = False
+    is_breakfast: Optional[bool] = False
+    is_lunch: Optional[bool] = False
+    is_dinner: Optional[bool] = False
+    is_snack: Optional[bool] = False
+    is_dessert: Optional[bool] = False
+    needs_blender: Optional[bool] = False
+    needs_oven: Optional[bool] = False
+    needs_stove: Optional[bool] = False
+    needs_slow_cooker: Optional[bool] = False
+    needs_toaster: Optional[bool] = False
+    needs_food_processor: Optional[bool] = False
+    needs_microwave: Optional[bool] = False
+    needs_grill: Optional[bool] = False
     complexity: Optional[int] = None
     cook_time: Optional[float] = None
     prep_time: Optional[float] = None
@@ -47,7 +47,6 @@ class FoodBase(BaseModel):
 class FoodCreate(FoodBase):
     """Schema for creating a new food"""
 
-    pass
 
 
 class FoodUpdate(BaseModel):

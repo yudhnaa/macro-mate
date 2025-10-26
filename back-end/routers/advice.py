@@ -1,3 +1,6 @@
+import asyncio
+import base64
+import io
 import json
 import uuid
 from typing import Optional
@@ -42,15 +45,11 @@ def format_user_profile(user_profile: dict) -> dict:
 
     # Add activity level
     if user_profile.get("activity_level"):
-        description_parts.append(
-            f"Mức độ hoạt động: {user_profile.get('activity_level')}"
-        )
+        description_parts.append(f"Mức độ hoạt động: {user_profile.get('activity_level')}")
 
     # Add dietary restrictions
     if user_profile.get("dietary_restrictions"):
-        description_parts.append(
-            f"Hạn chế chế độ ăn: {user_profile.get('dietary_restrictions')}"
-        )
+        description_parts.append(f"Hạn chế chế độ ăn: {user_profile.get('dietary_restrictions')}")
 
     # Add allergies
     if user_profile.get("allergies"):
@@ -88,7 +87,10 @@ async def stream_advice(
     user = get_user_by_email(db, current_user_email)
     print("USER=====>:", user)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
 
     # Get user profile with computed fields
     user_profile = add_computed_fields(user)
@@ -100,21 +102,37 @@ async def stream_advice(
 
     print("=====>THREAD ID:", thread_id)
 
-    image_url = None
-    upload_result = {}
+    image_base64 = None
+    cloudinary_task = None
+    upload_result = None
 
     if img_file:
-        """Upload cloudinary"""
-        upload_result = await cloudinary_service.upload_image(
-            file=img_file,
-            user_id=user.id,
-            optimize=True,
+        # Đọc file thành bytes
+        image_bytes = await img_file.read()
+
+        # Convert sang base64 để gửi cho Gemini
+        image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+        content_type = img_file.content_type or "image/jpeg"
+
+        # Tạo data URL cho Gemini
+        image_data_url = f"data:{content_type};base64,{image_base64}"
+
+        # Tạo lại UploadFile để upload Cloudinary (vì đã read hết)
+        img_file.file = io.BytesIO(image_bytes)
+        await img_file.seek(0)
+
+        # Chạy upload Cloudinary bất đồng bộ (không đợi)
+        cloudinary_task = asyncio.create_task(
+            cloudinary_service.upload_image(
+                file=img_file,
+                user_id=user.id,
+                optimize=True,
+            )
         )
 
-        image_url = upload_result.get("secure_url")
-        if not image_url:
-            raise HTTPException(status_code=500, detail="Image upload failed")
-        print("=====>IMAGE URL:", image_url)
+        print("=====>IMAGE converted to base64 for Gemini")
+    else:
+        image_data_url = None
 
     # Format profile to match expected structure
     user_profile = format_user_profile(user_profile)
@@ -123,18 +141,27 @@ async def stream_advice(
     async def event_generator():
         try:
             yield f"thread_id: {thread_id}\n\n"
-            if image_url:
-                yield f"data: {json.dumps(
-                    {'type': 'image_upload', 'content': upload_result},
-                    ensure_ascii=False)}\n\n"
+
+            # Stream analysis từ Gemini (sử dụng base64 image)
             async for event in service.process_request_stream(
                 thread_id=thread_id,
-                image_url=image_url,
+                image_url=image_data_url,  # Gửi base64 data URL thay vì Cloudinary URL
                 user_query=user_query,
                 user_profile=user_profile,
             ):
                 # Format SSE
                 yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+
+            # Sau khi analysis xong, lấy kết quả upload từ Cloudinary
+            if cloudinary_task:
+                try:
+                    upload_result = await cloudinary_task
+                    if upload_result and upload_result.get("secure_url"):
+                        yield f"data: {json.dumps({'type': 'image_uploaded', 'content': upload_result}, ensure_ascii=False)}\n\n"
+                        print("=====>CLOUDINARY URL:", upload_result.get("secure_url"))
+                except Exception as e:
+                    logger.error(f"Cloudinary upload failed: {e}")
+                    yield f"data: {json.dumps({'type': 'warning', 'content': 'Image analysis completed but upload failed'}, ensure_ascii=False)}\n\n"
 
             # End signal
             yield "data: [DONE]\n\n"
