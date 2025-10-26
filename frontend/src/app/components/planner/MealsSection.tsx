@@ -143,7 +143,7 @@ export default function MealsSection({
             <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
               <AlertTriangleIcon className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
               <span className="text-gray-600">
-                {Object.values(mealImages).flat().reduce((sum: number, img: FoodImage) => sum + (img.nutritionInfo?.calories || 0), 0)} / 2008
+                {Object.values(mealImages).flat().reduce((sum: number, img: FoodImage) => sum + (img.nutritionInfo?.calories || 0), 0).toFixed(2)} / 2008
               </span>
             </div>
           </div>
@@ -200,86 +200,86 @@ export default function MealsSection({
         ) : (
           <div className="space-y-4 sm:space-y-6">
             {meals.map((meal) => (
-              <div key={meal.type} className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:border-gray-300 transition-colors">
-                {/* Meal Header */}
-                <div className="flex items-center justify-between mb-3 sm:mb-4 gap-2">
-                  <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                    <div className="min-w-0">
-                      <h3 className="font-semibold text-gray-800 text-base sm:text-lg">{meal.label}</h3>
-                      <p className="text-xs sm:text-sm text-gray-500">
-                        {mealImages[meal.type]?.length || 0} {mealImages[meal.type]?.length === 1 ? 'item' : 'items'}
-                      </p>
-                    </div>
+            <div key={meal.type} className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:border-gray-300 transition-colors">
+              {/* Meal Header */}
+              <div className="flex items-center justify-between mb-3 sm:mb-4 gap-2">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-gray-800 text-base sm:text-lg">{meal.label}</h3>
+                    <p className="text-xs sm:text-sm text-gray-500">
+                      {mealImages[meal.type]?.length || 0} {mealImages[meal.type]?.length === 1 ? 'item' : 'items'}
+                    </p>
                   </div>
-                  <button
-                    onClick={() => handleAddImage(meal.type)}
-                    className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-xs sm:text-sm font-medium whitespace-nowrap flex-shrink-0"
-                  >
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    <span className="hidden xs:inline">Add Photo</span>
-                    <span className="xs:hidden">Add</span>
-                  </button>
                 </div>
-
-                {/* Meal Images Grid */}
-                {mealImages[meal.type]?.length > 0 ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
-                    {mealImages[meal.type].map((image) => (
-                      <div key={image.id} className="relative aspect-square group">
-                        <Image
-                          src={image.imageUrl}
-                          alt={`${meal.label} food`}
-                          fill
-                          className="object-cover rounded-lg"
-                        />
-                        {/* Remove button */}
-                        <button
-                          onClick={() => handleRemoveImage(meal.type, image.id)}
-                          className="absolute top-1 right-1 sm:top-2 sm:right-2 w-5 h-5 sm:w-6 sm:h-6 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:bg-red-600"
-                        >
-                          <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                        {/* Nutrition badge if analyzed */}
-                        {image.analyzed && image.nutritionInfo && (
-                          <div className="absolute bottom-1 left-1 sm:bottom-2 sm:left-2 bg-black/70 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-[10px] sm:text-xs">
-                            {image.nutritionInfo.calories} cal
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-6 sm:py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
-                    <svg className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <p className="text-gray-500 text-xs sm:text-sm">No food photos yet</p>
-                    <p className="text-gray-400 text-[10px] sm:text-xs mt-1">Add photos to track your meal</p>
-                  </div>
-                )}
-
-                {/* Quick Stats */}
-                {mealImages[meal.type]?.length > 0 && (
-                  <div className="mt-3 sm:mt-4 flex flex-col xs:flex-row items-start xs:items-center gap-2 xs:gap-4 text-xs sm:text-sm">
-                    <div className="flex items-center gap-1 sm:gap-2">
-                      <span className="text-gray-500">Total Calories:</span>
-                      <span className="font-semibold text-gray-800">
-                        {mealImages[meal.type].reduce((sum: number, img: FoodImage) => sum + (img.nutritionInfo?.calories || 0), 0)}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1 sm:gap-2">
-                      <span className="text-gray-500">Protein:</span>
-                      <span className="font-semibold text-gray-800">
-                        {mealImages[meal.type].reduce((sum: number, img: FoodImage) => sum + (img.nutritionInfo?.protein || 0), 0).toFixed(1)}g
-                      </span>
-                    </div>
-                  </div>
-                )}
+                <button
+                  onClick={() => handleAddImage(meal.type)}
+                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-xs sm:text-sm font-medium whitespace-nowrap flex-shrink-0"
+                >
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span className="hidden xs:inline">Add Photo</span>
+                  <span className="xs:hidden">Add</span>
+                </button>
               </div>
+
+              {/* Meal Images Grid */}
+              {mealImages[meal.type]?.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
+                  {mealImages[meal.type].map((image) => (
+                    <div key={image.id} className="relative aspect-square group">
+                      <Image
+                        src={image.imageUrl}
+                        alt={`${meal.label} food`}
+                        fill
+                        className="object-cover rounded-lg"
+                      />
+                      {/* Remove button */}
+                      <button
+                        onClick={() => handleRemoveImage(meal.type, image.id)}
+                        className="absolute top-1 right-1 sm:top-2 sm:right-2 w-5 h-5 sm:w-6 sm:h-6 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:bg-red-600"
+                      >
+                        <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                      {/* Nutrition badge if analyzed */}
+                      {image.analyzed && image.nutritionInfo && (
+                        <div className="absolute bottom-1 left-1 sm:bottom-2 sm:left-2 bg-black/70 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-[10px] sm:text-xs">
+                          {image.nutritionInfo.calories.toFixed(2)} cal
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6 sm:py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                  <svg className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <p className="text-gray-500 text-xs sm:text-sm">No food photos yet</p>
+                  <p className="text-gray-400 text-[10px] sm:text-xs mt-1">Add photos to track your meal</p>
+                </div>
+              )}
+
+              {/* Quick Stats */}
+              {mealImages[meal.type]?.length > 0 && (
+                <div className="mt-3 sm:mt-4 flex flex-col xs:flex-row items-start xs:items-center gap-2 xs:gap-4 text-xs sm:text-sm">
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <span className="text-gray-500">Total Calories:</span>
+                    <span className="font-semibold text-gray-800">
+                      {mealImages[meal.type].reduce((sum: number, img: FoodImage) => sum + (img.nutritionInfo?.calories || 0), 0).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <span className="text-gray-500">Protein:</span>
+                    <span className="font-semibold text-gray-800">
+                      {mealImages[meal.type].reduce((sum: number, img: FoodImage) => sum + (img.nutritionInfo?.protein || 0), 0).toFixed(2)}g
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
             ))}
           </div>
         )}
