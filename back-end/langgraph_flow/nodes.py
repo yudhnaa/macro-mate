@@ -1,4 +1,3 @@
-import re
 import traceback
 
 from langchain_core.exceptions import OutputParserException
@@ -450,13 +449,7 @@ async def nutrition_lookup_node(state: GraphState) -> GraphState:
                 else:
                     logger.warning(f"⚠️ No USDA data: {comp_data['name_vi']} / {comp_data['name_en']}")
 
-                enriched.append({
-                    "component": comp_data,
-                    "usda_match": None,
-                    "scaled_nutrition": estimated_nutrition,  # Use Gemini estimate or None
-                    "data_source": "GEMINI_ESTIMATE" if estimated_nutrition else "NO_DATA",
-                    "match_quality": comp_obj.confidence if estimated_nutrition else 0
-                })
+                
 
         # Calculate totals (includes both USDA and Gemini estimates)
         totals = {"calories": 0, "protein": 0, "carbs": 0, "fat": 0, "fiber": 0, "sodium": 0}
