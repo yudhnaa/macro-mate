@@ -72,11 +72,10 @@ export default function ImageGrid({
                     e.stopPropagation();
                     onSelectImage(image.id);
                   }}
-                  className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
-                    selectedImages.has(image.id)
+                  className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${selectedImages.has(image.id)
                       ? 'bg-orange-500 border-orange-500'
                       : 'bg-white border-gray-300 opacity-0 group-hover:opacity-100'
-                  }`}
+                    }`}
                 >
                   {selectedImages.has(image.id) && (
                     <svg
@@ -157,11 +156,11 @@ export default function ImageGrid({
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="bg-gray-50 rounded px-2 py-1">
                   <span className="text-gray-500">Calories:</span>
-                  <span className="font-semibold ml-1">{image.nutritionInfo.calories}</span>
+                  <span className="font-semibold ml-1">{image.nutritionInfo.calories.toFixed(2)}</span>
                 </div>
                 <div className="bg-gray-50 rounded px-2 py-1">
                   <span className="text-gray-500">Protein:</span>
-                  <span className="font-semibold ml-1">{image.nutritionInfo.protein}g</span>
+                  <span className="font-semibold ml-1">{image.nutritionInfo.protein.toFixed(2)}g</span>
                 </div>
               </div>
             )}
