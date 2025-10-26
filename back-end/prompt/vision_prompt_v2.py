@@ -28,7 +28,7 @@ IF NOT safe → RETURN safety info only, STOP
 **Phát hiện từng thành phần**:
 - Liệt kê RIÊNG BIỆT (đừng gộp "cơm tấm" thành 1 item)
 - name_vi: Tên tiếng Việt (vd: "thịt lợn nướng", "cơm trắng")
-- name_en: Tên GENERIC tiếng Anh. Tên foundation foods để tìm kiếm trên USDA (vd: "bread" instead of "burger bun", "grilled pork", "white rice", )
+- name_en: Tên GENERIC tiếng Anh. Tên foundation foods hoac theo SR Legacy Foods để tìm kiếm trên USDA (vd: "bread" instead of "burger bun", "grilled pork", "white rice", )
   * KHÔNG dùng tên phức tạp như "Vietnamese caramelized pork"
   * CHỈ dùng thuật ngữ đơn giản để tra USDA
 - estimated_weight: Ước tính khối lượng (gram)
@@ -101,7 +101,7 @@ IF NOT safe → RETURN safety info only, STOP
       "estimated_weight": 30,
       "cooking_method": "raw",
       "confidence": 0.80,
-      "estimated_nutrition": {{{{
+      "nutrition": {{{{
         "calories": 79.2,
         "protein": 2.64,
         "fat": 1.2,
