@@ -348,10 +348,10 @@ class WorkflowService:
                 ):
                     for node_name, state_update in event.items():
                         logger.info(f"📍 Node: {node_name}")
-                        
+
                         # Store final state
                         final_state = state_update
-                        
+
                         # Router
                         if node_name == "router":
                             yield {
@@ -359,7 +359,7 @@ class WorkflowService:
                                 "step": "routing",
                                 "message": "Đang phân tích yêu cầu...",
                             }
-                        
+
                         # Vision
                         elif node_name == "vision" and not vision_emitted:
                             if state_update.get("error"):
@@ -382,17 +382,17 @@ class WorkflowService:
                                     },
                                 }
                                 vision_emitted = True
-                        
+
                         # Nutrition lookup
                         elif node_name == "nutrition_lookup" and not nutrition_emitted:
                             if state_update.get("error"):
                                 yield {"type": "error", "content": state_update["error"]}
                                 return
-                            
+
                             if state_update.get("nutrition_totals"):
                                 totals = state_update["nutrition_totals"]
                                 quality = state_update.get("data_quality", 0)
-                                
+
                                 yield {
                                     "type": "progress",
                                     "step": "nutrition_complete",
@@ -405,11 +405,12 @@ class WorkflowService:
                                         "protein": round(totals.get("protein", 0), 1),
                                         "carbs": round(totals.get("carbs", 0), 1),
                                         "fat": round(totals.get("fat", 0), 1),
+                                        "sodium": round(totals.get("sodium", 0), 1),
                                         "data_quality": round(quality * 100),
                                     },
                                 }
                                 nutrition_emitted = True
-                        
+
                         # Image advisor (don't handle here, let node handle it)
                         elif node_name == "image_advisor":
                             # ✅ Node handles advisor internally
@@ -419,7 +420,7 @@ class WorkflowService:
                                 "step": "advisor_complete",
                                 "message": "Tư vấn hoàn tất",
                             }
-                        
+
                         # Text advisor
                         elif node_name == "text_advisor":
                             yield {
@@ -431,13 +432,13 @@ class WorkflowService:
                 # ✅ FIXED: Stream advisor response AFTER graph completes
                 if final_state:
                     yield {"type": "advisor_start"}
-                    
+
                     # Get last AI message from state
                     messages = final_state.get("messages", [])
-                    
+
                     if messages:
                         last_message = messages[-1]
-                        
+
                         if isinstance(last_message, AIMessage):
                             # Stream character by character
                             for char in last_message.content:
@@ -445,7 +446,7 @@ class WorkflowService:
                                 await asyncio.sleep(0.01)
 
                 yield {"type": "complete"}
-                
+
             except Exception as e:
                 import traceback
                 logger.error(f"Stream error: {e}\n{traceback.format_exc()}")
@@ -455,11 +456,11 @@ class WorkflowService:
                     "detail": traceback.format_exc(),
                 }
 
-    async def analyze_image(self, img_url: str) -> ComponentDetectionResult:
+    async def analyze_image(self, img_url: str) -> RecognitionWithSafety:
         """Legacy image analysis endpoint"""
         try:
-            logger.info(f"Starting image analysis for {img_url}")
-            
+            logger.info("Starting image analysis for")
+
             initial_state: GraphState = {
                 "messages": [],
                 "image_url": img_url,
@@ -477,20 +478,18 @@ class WorkflowService:
             analyze_state = await vision_node_v2(initial_state)
             result_state = await nutrition_lookup_node(analyze_state)
 
-
-
             if result_state.get("error"):
                 logger.error(f"Image analysis error: {result_state['error']}")
                 raise Exception(result_state["error"])
-            
-            vision_result = result_state.get("component_detection")
+
+            vision_result = result_state.get("vision_result")
 
             if not vision_result:
                 raise ValueError("Vision analysis did not return result")
 
             logger.info(f"Vision analysis successful: {vision_result.dish_name}")
             return vision_result
-            
+
         except Exception as e:
             logger.error(f"analyze_image failed: {e}")
             raise

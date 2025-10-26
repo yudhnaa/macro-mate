@@ -13,7 +13,7 @@ vlm:
         backoff_factor: 2
 
     gemini:
-      model: gemini-2.5-flash
+      model: gemini-2.5-pro
       rate_limit:
         requests_per_minute: 15
         requests_per_day: unlimited
@@ -23,7 +23,7 @@ llm:
   default_provider: gemini
   providers:
     gemini:
-      model: gemini-2.5-flash
+      model: gemini-2.5-pro
       cost_per_1k_tokens: 0.0 # Free tier
       rate_limit:
         requests_per_minute: 15
